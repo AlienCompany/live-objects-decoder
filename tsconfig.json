@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "dist/",
+    "watch": true,
+    "inlineSourceMap": true,
+    "target": "es5",
+
+  },
+  "include": [
+    "**/*.ts"
+  ]
+}
