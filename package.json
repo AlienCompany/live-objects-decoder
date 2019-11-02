@@ -4,11 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "gulp build",
+    "start:dev": "gulp dev"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "typescript": "^3.6.4"
+  },
+  "devDependencies": {
+    "express": "^4.17.1",
+    "file-loader": "^4.2.0",
+    "gulp": "^4.0.2",
+    "gulp-connect": "^5.7.0",
+    "gulp-open": "^3.0.1",
+    "gulp-typescript": "^5.0.1",
+    "gulp-watch": "^5.0.1",
+    "ts-loader": "^6.2.1"
   }
 }
