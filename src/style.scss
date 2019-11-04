@@ -1,0 +1,96 @@
+.material-icons{
+  font-size: 1em;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+#decoders {
+  background: #FF5722;
+  min-height: 100vh;
+  color: #fff;
+
+  .decoders-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5em;
+    padding: 0.2em 0;
+  }
+
+  .material-icons {
+    padding: 5px 0;
+  }
+
+  .btn {
+    color: #fff;
+    text-align: left;
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+
+    .badge {
+      top: -5px;
+      left: 5px;
+      margin-right: 10px;
+    }
+
+    .material-icons {
+      opacity: 0;
+      transition-duration: 0.2s;
+      border-radius: 50%;
+      width: 26px;
+      text-align: center;
+      &:hover {
+        background: rgba(0,0,0,0.2);
+      }
+    }
+  }
+
+  form {
+    padding: .375rem .75rem;
+
+    #add-decoder-name, #add-decoder-type {
+      border: none;
+      background: none;
+      color: #fff;
+      outline: none;
+    }
+
+    #add-decoder-name::placeholder {
+      color: #fff;
+    }
+
+    #add-decoder-type {
+      border: solid 1px #FF5722;
+      opacity: 0;
+      transition-duration: 0.2s;
+
+      option {
+        color: #000;
+      }
+    }
+
+  }
+
+  .btn:hover, .btn.active, form.focused {
+    background: #BF360C;
+  }
+
+  .btn:hover .material-icons {
+    opacity: 1;
+  }
+
+  form.focused #add-decoder-type {
+    opacity: 1;
+  }
+
+}
+
+

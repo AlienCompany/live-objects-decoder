@@ -3,14 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Live object decoder</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="content">
-
+    <div class="content flex-row">
+        <div id="decoders" class="flex-col">
+            <div class="decoders-title">Decoders</div>
+            <div id="decoders-list" class="flex-col">
+            </div>
+            <form id="add-decoder" class="flex-row">
+                <i class="material-icons">add</i>
+                <input type="text" propageFocus id="add-decoder-name" placeholder="Nouveau" class="flex-grow-1">
+                <select id="add-decoder-type" propageFocus>
+                    <option value="js">.js</option>
+                    <option value="ts" selected>.ts</option>
+                </select>
+            </form>
+        </div>
+        <div class="test">
+        </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
     <script src="script.js"></script>
 </body>
 </html>
