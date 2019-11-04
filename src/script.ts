@@ -4,17 +4,61 @@ interface Decoder {
 	type: 'ts' | 'js';
 	fileName: string;
 	navHtmlElement?: HTMLElement;
+	js?: string;
+	ts?: string;
 }
 
-interface DecoderSource {
-	js: string;
-	ts?: string;
+interface TsCompileErrorPos {
+	character: number;
+	position: number;
+	line: number
+}
+
+interface TsCompileError {
+	message: string;
+	startPosition: TsCompileErrorPos;
+	endPosition: TsCompileErrorPos;
 }
 
 $(() => {
 	let decoders: Decoder[];
 	let currentDecoder: Decoder;
+	let editorCodeMirror: CodeMirror.Editor;
 	const noop = () => undefined;
+
+	const TsLint: CodeMirror.AsyncLinter = async (content: string, updateLintingCallback, options, codeMirror) => {
+		console.log(content, updateLintingCallback, options, codeMirror);
+		const decoder = currentDecoder;
+		if (!decoder.type || decoder.type !== 'ts') return;
+		try {
+			decoder.js = await $.ajax({
+				method: 'POST',
+				url: `/compile/ts`,
+				data: content,
+				processData: false,
+				dataType: 'text',
+				contentType: 'text/plain',
+			});
+			updateLintingCallback(codeMirror, []);
+		} catch (e) {
+			if (e.status == 409) {
+				const errors: TsCompileError[] = JSON.parse(e.responseText)
+				updateLintingCallback(codeMirror, errors.map(err => ({
+					from: {
+						ch: err.startPosition.character,
+						line: err.startPosition.line
+					},
+					message: err.message,
+					severity: 'error',
+					to: {
+						ch: err.endPosition.character,
+						line: err.endPosition.line
+					}
+				})))
+			}
+			console.log(e)
+		}
+	};
 
 	const defaultJsDecoderContent = ``;
 	const defaultTsDecoderContent = ``;
@@ -26,7 +70,7 @@ $(() => {
 		await $.ajax({method: 'DELETE', url: `/src/decoders/${fileName}`});
 
 		$(decoder.navHtmlElement).remove();
-		decoders.splice(decoders.indexOf(decoder),1);
+		decoders.splice(decoders.indexOf(decoder), 1);
 	}
 
 	async function renameDecoder(decoder: Decoder, newName: string): Promise<void> {
@@ -42,7 +86,6 @@ $(() => {
 
 	async function copyDecoder(decoder: Decoder, newName: string) {
 
-		const fileName = decoder.fileName + '.' + decoder.type;
 		const newFileName = newName + '.' + decoder.type;
 
 		const source = await getSource(decoder);
@@ -125,12 +168,18 @@ $(() => {
 		return $.get(`/src/decoders/${decoder.fileName}.${decoder.type}`)
 	}
 
-	function selectDecoder(decoder: Decoder): void {
+	async function selectDecoder(decoder: Decoder): Promise<void> {
 		if (currentDecoder) {
 			$(currentDecoder.navHtmlElement).removeClass('active')
 		}
 		$(decoder.navHtmlElement).addClass('active');
 		currentDecoder = decoder;
+
+		decoder[decoder.type] = await getSource(decoder);
+
+		editorCodeMirror.setValue(decoder[decoder.type]);
+		editorCodeMirror.setOption('mode', decoder.type === 'js' ? 'javascript' : 'text/typescript');
+		editorCodeMirror.setOption('lint', decoder.type === 'js' ? true : {async: true, getAnnotations: TsLint});
 	}
 
 	async function newDecoder() {
@@ -184,6 +233,15 @@ $(() => {
 	}
 
 	async function init() {
+		editorCodeMirror = CodeMirror($('#editor-content')[0], {
+			lineNumbers: true,
+			// mode: "javascript",
+			mode: 'text/typescript',
+			gutters: ['CodeMirror-lint-markers'],
+			lineWrapping: false,
+			lint: true
+		});
+
 		const decodersFileName: string[] = await $.get('decoders');
 		decoders = decodersFileName
 			.map((file) => /^(.*)\.(js|ts)$/.exec(file))
@@ -201,17 +259,17 @@ $(() => {
 		$('#decoders form select').on('change', (e) => newDecoder());
 
 		selectDecoderFromAnvhor();
-		window.addEventListener('hashchange', ()=>selectDecoderFromAnvhor());
+		window.addEventListener('hashchange', () => selectDecoderFromAnvhor());
 	}
 
-	function getAnchor(): string{
+	function getAnchor(): string {
 		return window.location.hash.substr(1);
 	}
 
-	function selectDecoderFromAnvhor(): void{
+	function selectDecoderFromAnvhor(): void {
 		const anchor = getAnchor();
-		const anchorDecoder = decoders.find((d)=>d.fileName === anchor) || decoders[0];
-		if(anchorDecoder !== currentDecoder){
+		const anchorDecoder = decoders.find((d) => d.fileName === anchor) || decoders[0];
+		if (anchorDecoder !== currentDecoder) {
 			selectDecoder(anchorDecoder);
 		}
 	}

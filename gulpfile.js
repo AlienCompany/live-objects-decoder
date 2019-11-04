@@ -7,7 +7,9 @@ const servePort = 4000;
 const fs = require("fs");
 const open = require('gulp-open');
 const sass = require('gulp-sass');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const Readable = require('stream').Readable;
+const Vinyl = require('vinyl');
 
 gulp.task('build-ts', function () {
     return tsProject.src()
@@ -18,12 +20,38 @@ gulp.task('copy-html', function () {
     return gulp.src('./src/**/*.html')
         .pipe(gulp.dest('./dist/'));
 });
+gulp.task('copy-js', function () {
+    return gulp.src('./src/**/*.js')
+        .pipe(gulp.dest('./dist/'));
+});
+gulp.task('codemirror-core', function () {
+    return gulp.src('./node_modules/codemirror/lib/codemirror.*')
+        .pipe(gulp.dest('./dist/codemirror/'));
+});
+gulp.task('codemirror-mode', function () {
+    return gulp.src('./node_modules/codemirror/mode/javascript/*')
+        .pipe(gulp.dest('./dist/codemirror/mode/'));
+});
+gulp.task('codemirror-addon', function () {
+    return gulp.src([
+        './node_modules/codemirror/addon/lint/lint.js',
+        './node_modules/codemirror/addon/lint/javascript-lint.js',
+        './node_modules/codemirror/addon/hint/javascript-hint.js',
+        './node_modules/codemirror/addon/lint/lint.css'
+    ])
+        .pipe(gulp.dest('./dist/codemirror/addon/'));
+});
+gulp.task('codemirror-theme', function () {
+    return gulp.src('./node_modules/codemirror/theme/*')
+        .pipe(gulp.dest('./dist/codemirror/theme/'));
+});
+gulp.task('codemirror', gulp.parallel('codemirror-core', 'codemirror-theme', 'codemirror-mode', 'codemirror-addon'));
 gulp.task('build-sass', function () {
     return gulp.src('./src/**/*.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(gulp.dest('./dist'));
 });
-gulp.task('build', gulp.parallel('build-ts', 'copy-html', 'build-sass'));
+gulp.task('build', gulp.parallel('build-ts', 'copy-html', 'build-sass', 'codemirror'));
 gulp.task('build-watch', gulp.series('build', function () {
     return watch('src/**', function () {
         console.log('watch detection');
@@ -51,7 +79,7 @@ gulp.task('serve-start', function () {
             res.send(404, 'Script not found');
             return;
         }
-        if(fs.existsSync(to)){
+        if (fs.existsSync(to)) {
             res.send(409, 'Script already exist');
             return;
         }
@@ -96,6 +124,53 @@ gulp.task('serve-start', function () {
 
         res.send('deleted');
     });
+    app.post('/compile/ts', function (req, res) {
+
+        let data = "";
+        let errorSent = false;
+        let cErrors = [];
+        let os = require('os');
+
+        const tmpFile = os.tmpdir()+'/live-objects-decoder-compile_'+(Math.random()*100000000).toFixed(0)+'.ts';
+        fs.writeFileSync(tmpFile, req.body);
+        gulp.src(tmpFile)
+            .on('error', (e) => {
+                res.send(500, e.stack);
+            })
+            .pipe(ts({
+                    target: 'es5'
+                },
+                {
+                    error: (error, typescript) => {
+                        cErrors.push({
+                            message: error.diagnostic.messageText,
+                            startPosition: error.startPosition,
+                            endPosition: error.endPosition,
+                        });
+                    },
+                    finish: (results) => {
+                        if(cErrors.length){
+                            res.send(409, cErrors);
+                            errorSent = true;
+                        }
+                    }
+                }))
+            .on('error', (e) => {
+                if(errorSent) return;
+                res.send(500, e.stack);
+                errorSent = true;
+            })
+            .on('finish', () => {
+                if (!errorSent) res.send(data);
+            })
+            .js
+            .on('data', (r, a, b) => {
+                data += r.contents.toString();
+            })
+            .on('error', (e) => {
+                res.send(500, e.stack);
+            });
+    });
 
     return connect.server({
         root: 'dist',
@@ -107,5 +182,6 @@ gulp.task('serve-start', function () {
 });
 gulp.task('serve', gulp.parallel('serve-start', 'open-browser'));
 
-gulp.task('dev', gulp.parallel('build-watch', 'serve'));
+// gulp.task('dev', gulp.parallel('build-watch', 'serve'));
+gulp.task('dev', gulp.parallel('build-watch', 'serve-start'));
 

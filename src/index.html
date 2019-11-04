@@ -5,6 +5,8 @@
     <title>Live object decoder</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="codemirror/codemirror.css">
+    <link rel="stylesheet" href="codemirror/addon/lint.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,11 +24,17 @@
                 </select>
             </form>
         </div>
-        <div class="test">
+        <div id="editor" class="flex-col flex-grow-1">
+            <div id="editor-content" class="flex-grow-1" style="height: 100vh"></div>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+    <script src="codemirror/codemirror.js"></script>
+    <script src="codemirror/mode/javascript.js"></script>
+    <script src="https://unpkg.com/jshint@2.9.6/dist/jshint.js"></script>
+    <script src="codemirror/addon/lint.js"></script>
+    <script src="codemirror/addon/javascript-lint.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
