@@ -11,8 +11,8 @@
 </head>
 <body>
     <div class="content flex-row">
-        <div id="decoders" class="flex-col">
-            <div class="decoders-title">Decoders</div>
+        <div id="decoders" class="flex-col panel panel-left">
+            <div class="panel-title">Decoders</div>
             <div id="decoders-list" class="flex-col">
             </div>
             <form id="add-decoder" class="flex-row">
@@ -25,10 +25,35 @@
             </form>
         </div>
         <div id="editor" class="flex-col flex-grow-1">
-            <div id="editor-content" class="flex-grow-1" style="height: 100vh"></div>
+            <div id="editor-content" class="flex-col flex-grow-1"></div>
+        </div>
+        <div id="test" class="flex-col panel panel-right">
+            <div class="panel-title">Test</div>
+            <div class="dropdown flex-col">
+                <button class="btn text-center dropdown-toggle" type="button" id="dropdownTest" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Choisir un jeu de test
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownTest">
+                    <button class="dropdown-item" type="button">Jeux de test1dxdsssssssssssssssssssssssssssss</button>
+                    <button class="dropdown-item" type="button">Jeux de test2</button>
+                    <button class="dropdown-item" type="button">Jeux de test3</button>
+                </div>
+            </div>
+            <textarea id="test-value" placeholder="Valeurs a tester (separateur: ' .,;-')" style="height: 2em;min-height: 2em"></textarea>
+            <div class="panel-title">Resultat</div>
+            <div class="ml-3"><input type="checkbox" id="result-developed" checked/><label for="result-developed">Affichage developer</label></div>
+            <div class="simple-result">
+                <div id="simple-value-result" class="result"></div>
+            </div>
+            <div class="multi-result">
+                <div id="multi-value-result" class="result"></div>
+            </div>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<!--    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
     <script src="codemirror/codemirror.js"></script>
     <script src="codemirror/mode/javascript.js"></script>

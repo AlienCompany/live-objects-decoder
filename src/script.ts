@@ -20,10 +20,25 @@ interface TsCompileError {
 	endPosition: TsCompileErrorPos;
 }
 
+const extractDecoderFromScript = (script: string): string | ((string)=> string) => {
+	try {
+		// @ts-ignore
+		declare const decode: (string)=> string;
+		eval(script);
+		if(decode === undefined) return "la fonction decode n'exist pas dans votre script";
+		if(!decode || {}.toString.call(decode) !== '[object Function]') return "decode doit étre une fonction";
+		return decode;
+	}catch (e) {
+		return "Votre script ne compile pas :\n" + (e && e.stack) || JSON.stringify(e);
+	}
+}
+
 $(() => {
 	let decoders: Decoder[];
 	let currentDecoder: Decoder;
 	let editorCodeMirror: CodeMirror.Editor;
+	let lastResult: {input: string, output?: string, error?:any}[] = [];
+	let jsonSeparator: string = '\t';
 	const noop = () => undefined;
 
 	const TsLint: CodeMirror.AsyncLinter = async (content: string, updateLintingCallback, options, codeMirror) => {
@@ -40,6 +55,9 @@ $(() => {
 				contentType: 'text/plain',
 			});
 			updateLintingCallback(codeMirror, []);
+			if(decoder === currentDecoder){
+				await doTest();
+			}
 		} catch (e) {
 			if (e.status == 409) {
 				const errors: TsCompileError[] = JSON.parse(e.responseText)
@@ -164,6 +182,19 @@ $(() => {
 		}
 	}
 
+	async function saveDecoder(decoder: Decoder): Promise<void> {
+		const newFileName = decoder.fileName + '.' + decoder.type;
+
+		await $.ajax({
+			method: 'POST',
+			url: `/src/decoders/${newFileName}`,
+			data: decoder[decoder.type],
+			processData: false,
+			dataType: 'text',
+			contentType: 'text/plain',
+		});
+	}
+
 	async function getSource(decoder: Decoder): Promise<string> {
 		return $.get(`/src/decoders/${decoder.fileName}.${decoder.type}`)
 	}
@@ -232,6 +263,64 @@ $(() => {
 		location.hash = decoder.fileName;
 	}
 
+	async function doTest(){
+		const values = getTestValues();
+		const decoder = extractDecoderFromScript(currentDecoder.js);
+		if(typeof decoder === 'string'){
+			//todo
+			console.log('errorDecoder:', decoder);
+			return;
+		}
+		lastResult = values.map((input)=>{
+			try {
+				return {input, output: decoder(input)};
+			}catch (error) {
+				return {input, error}
+			}
+		});
+
+		renderResult();
+
+	}
+
+	function renderResult() {
+		$('.simple-result').css('display', lastResult.length === 1 ? 'block' : 'none');
+		$('.multi-result').css('display', lastResult.length > 1 ? 'block' : 'none');
+
+		const errToStr = (err)=>err.stack || JSON.stringify(err, undefined, jsonSeparator);
+		const outToStr = (out)=>typeof out === 'string'? out : JSON.stringify(out, undefined, jsonSeparator);
+
+		if(lastResult.length === 1){
+			if(lastResult[0].error){
+				$('#simple-value-result')
+					.addClass('value-error')
+					.text(errToStr(lastResult[0].error))
+			}else {
+				$('#simple-value-result')
+					.removeClass('value-error')
+					.text(outToStr(lastResult[0].output))
+			}
+		}else if(lastResult.length > 1){
+			const table = $(`<table></table>`);
+			lastResult.map(resRow => {
+				const isError = !!resRow.error;
+				const showedText = isError? errToStr(resRow.error): outToStr(resRow.output);
+				const row = $(`<tr><td>${resRow.input}</td><td class="multi-res-val${isError?' value-error': ''}"></td></tr>`);
+				row.find('.multi-res-val').text(showedText)
+				table.append(row);
+			});
+			$('#multi-value-result').html('').append(table);
+		}
+	}
+
+	function getTestValues(){
+		const inputVal = $('#test-value').val() as string;
+		return inputVal.replace(/[^A-Za-z0-9]+/g, ',')
+			.split(',')
+			.filter(v=>v);
+
+	}
+
 	async function init() {
 		editorCodeMirror = CodeMirror($('#editor-content')[0], {
 			lineNumbers: true,
@@ -256,10 +345,25 @@ $(() => {
 			e.preventDefault();
 			newDecoder();
 		})
-		$('#decoders form select').on('change', (e) => newDecoder());
+		$('#decoders form select').on('change', () => newDecoder());
+		$('#test-value').on('input', () => doTest());
+		$('#result-developed').on('change', ()=>{
+			jsonSeparator = $('#result-developed').is(":checked") ? '\t' : undefined;
+			renderResult();
+		});
+		editorCodeMirror.on('change', ()=>{
+			if(editorCodeMirror.getValue() !== currentDecoder[currentDecoder.type]){
+				currentDecoder[currentDecoder.type] = editorCodeMirror.getValue();
+				saveDecoder(currentDecoder);
+				if(currentDecoder.type==='js'){
+					doTest();
+				}
+			}
+		})
 
 		selectDecoderFromAnvhor();
 		window.addEventListener('hashchange', () => selectDecoderFromAnvhor());
+		renderResult();
 	}
 
 	function getAnchor(): string {

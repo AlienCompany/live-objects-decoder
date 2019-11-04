@@ -3,7 +3,7 @@
 }
 
 .CodeMirror{
-  height: 100%;
+  flex-grow: 1;
 }
 
 .flex-row {
@@ -16,12 +16,19 @@
   flex-direction: column;
 }
 
-#decoders {
+.content{
+  height: 100vh;
+  > *{
+    overflow-y: auto;
+    min-height: 100vh;
+  }
+}
+
+.panel {
   background: #FF5722;
-  min-height: 100vh;
   color: #fff;
 
-  .decoders-title {
+  &-title{
     text-align: center;
     font-weight: bold;
     font-size: 1.5em;
@@ -51,50 +58,58 @@
       border-radius: 50%;
       width: 26px;
       text-align: center;
+
       &:hover {
-        background: rgba(0,0,0,0.2);
+        background: rgba(0, 0, 0, 0.2);
       }
     }
   }
 
-  form {
-    padding: .375rem .75rem;
 
-    #add-decoder-name, #add-decoder-type {
-      border: none;
-      background: none;
-      color: #fff;
-      outline: none;
-    }
-
-    #add-decoder-name::placeholder {
-      color: #fff;
-    }
-
-    #add-decoder-type {
-      border: solid 1px #FF5722;
-      opacity: 0;
-      transition-duration: 0.2s;
-
-      option {
-        color: #000;
-      }
-    }
-
-  }
-
-  .btn:hover, .btn.active, form.focused {
+  .btn:hover, .btn.active {
     background: #BF360C;
   }
 
   .btn:hover .material-icons {
     opacity: 1;
   }
+}
+#decoders form {
+  padding: .375rem .75rem;
 
-  form.focused #add-decoder-type {
-    opacity: 1;
+  #add-decoder-name, #add-decoder-type {
+    border: none;
+    background: none;
+    color: #fff;
+    outline: none;
   }
 
+  #add-decoder-name::placeholder {
+    color: #fff;
+  }
+
+  #add-decoder-type {
+    border: solid 1px #FF5722;
+    opacity: 0;
+    transition-duration: 0.2s;
+
+    option {
+      color: #000;
+    }
+  }
+
+  &.focused {
+    background: #BF360C;
+  }
+  #add-decoder-type {
+     opacity: 1;
+   }
 }
+
+#test{
+  width: 300px;
+}
+
+
 
 
