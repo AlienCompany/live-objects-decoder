@@ -165,7 +165,7 @@ $(() => {
 	<a title="Copyer" class="material-icons float-right copy">file_copy</a>
 	<a title="Suprimer" class="material-icons float-right delete">delete</a>
 </button>`);
-		domBtn.on('click', () => selectDecoder(decoder));
+		domBtn.on('click', () => location.hash = decoder.fileName);
 		domBtn.find('.rename').on('click', (event) => {
 			event.stopPropagation();
 			uiRenameDecoder(decoder)
@@ -180,6 +180,7 @@ $(() => {
 		});
 		decoder.navHtmlElement = domBtn[0];
 		decodersContenaire.append(decoder.navHtmlElement);
+		location.hash = decoder.fileName;
 	}
 
 	async function init() {
@@ -198,6 +199,21 @@ $(() => {
 			newDecoder();
 		})
 		$('#decoders form select').on('change', (e) => newDecoder());
+
+		selectDecoderFromAnvhor();
+		window.addEventListener('hashchange', ()=>selectDecoderFromAnvhor());
+	}
+
+	function getAnchor(): string{
+		return window.location.hash.substr(1);
+	}
+
+	function selectDecoderFromAnvhor(): void{
+		const anchor = getAnchor();
+		const anchorDecoder = decoders.find((d)=>d.fileName === anchor) || decoders[0];
+		if(anchorDecoder !== currentDecoder){
+			selectDecoder(anchorDecoder);
+		}
 	}
 
 	init().then(noop)
