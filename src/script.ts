@@ -242,7 +242,7 @@ $(() => {
 			lint: true
 		});
 
-		const decodersFileName: string[] = await $.get('decoders');
+		const decodersFileName: string[] = await $.get('src/decoders');
 		decoders = decodersFileName
 			.map((file) => /^(.*)\.(js|ts)$/.exec(file))
 			.filter(_ => _)
