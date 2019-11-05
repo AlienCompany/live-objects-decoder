@@ -1,6 +1,16 @@
 .material-icons{
   font-size: 1em;
 }
+.pre {
+  white-space: pre;
+}
+
+.col-separator {
+  width: 5px;
+  background: #00000030;
+  z-index: 5;
+  cursor: col-resize;
+}
 
 .CodeMirror{
   flex-grow: 1;

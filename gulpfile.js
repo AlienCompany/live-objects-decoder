@@ -51,7 +51,7 @@ gulp.task('build-sass', function () {
 });
 gulp.task('build', gulp.parallel('build-ts', 'copy-html', 'build-sass', 'codemirror'));
 gulp.task('build-watch', gulp.series('build', function () {
-    return watch('src/**', function () {
+    return watch('src/*', function () {
         console.log('watch detection');
         gulp.series('build')();
     })

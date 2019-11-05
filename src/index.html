@@ -24,9 +24,11 @@
                 </select>
             </form>
         </div>
+        <div class="col-separator" target="decoders"></div>
         <div id="editor" class="flex-col flex-grow-1">
             <div id="editor-content" class="flex-col flex-grow-1"></div>
         </div>
+        <div class="col-separator" target="test" revert></div>
         <div id="test" class="flex-col panel panel-right">
             <div class="panel-title">Test</div>
             <div class="dropdown flex-col">
@@ -40,10 +42,11 @@
                 </div>
             </div>
             <textarea id="test-value" placeholder="Valeurs a tester (separateur: ' .,;-')" style="height: 2em;min-height: 2em"></textarea>
+            <div id="test-error" style="display: none" ><div class="alert alert-danger pre mx-3"></div></div>
             <div class="panel-title">Resultat</div>
             <div class="ml-3"><input type="checkbox" id="result-developed" checked/><label for="result-developed">Affichage developer</label></div>
             <div class="simple-result">
-                <div id="simple-value-result" class="result"></div>
+                <div id="simple-value-result" class="result pre"></div>
             </div>
             <div class="multi-result">
                 <div id="multi-value-result" class="result"></div>

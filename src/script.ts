@@ -25,7 +25,7 @@ const extractDecoderFromScript = (script: string): string | ((string)=> string) 
 		// @ts-ignore
 		declare const decode: (string)=> string;
 		eval(script);
-		if(decode === undefined) return "la fonction decode n'exist pas dans votre script";
+		if(typeof decode === typeof undefined) return "la fonction decode n'exist pas dans votre script";
 		if(!decode || {}.toString.call(decode) !== '[object Function]') return "decode doit étre une fonction";
 		return decode;
 	}catch (e) {
@@ -89,6 +89,14 @@ $(() => {
 
 		$(decoder.navHtmlElement).remove();
 		decoders.splice(decoders.indexOf(decoder), 1);
+	}
+
+	function setTestErrorMsg(msg: string): void{
+		$('#test-error')
+			.css('display', msg? 'block': 'none')
+			.find('.alert')
+			.text(msg||'');
+
 	}
 
 	async function renameDecoder(decoder: Decoder, newName: string): Promise<void> {
@@ -267,27 +275,48 @@ $(() => {
 		const values = getTestValues();
 		const decoder = extractDecoderFromScript(currentDecoder.js);
 		if(typeof decoder === 'string'){
-			//todo
-			console.log('errorDecoder:', decoder);
+			setTestErrorMsg(decoder);
 			return;
 		}
+		setTestErrorMsg(null);
 		lastResult = values.map((input)=>{
 			try {
-				return {input, output: decoder(input)};
+				const out = decoder(input);
+				if(typeof out !== 'string'){
+					return {input, error: new Error('Result is not a string! (out type= ' + typeof out + ')')};
+				}
+				try{
+					return {input, output: JSON.parse(out)};
+				}catch (e) {
+					return {input, error: new Error('The string result don\'t contain a JSON\n'+e.message+'\n'+'result = '+out)}
+				}
 			}catch (error) {
 				return {input, error}
 			}
 		});
 
+		lastResult.map(res=>res.error).filter(_=>_).forEach((err)=>console.error(err));
+
 		renderResult();
 
+	}
+
+	function extractEvalSatck(stack: string): string{
+		if(typeof stack !== 'string') return stack;
+		return stack.split('\n').map((line)=>{
+			if(!/^[\ \\]+at\ /.test(line))return line;
+			const res = /^(.*)\(eval at[^\,]+,(.*)$/.exec(line);
+			if(!res) return null;
+			debugger;
+			return res[1]+'('+res[2];
+		}).filter(_=>_).join('\n');
 	}
 
 	function renderResult() {
 		$('.simple-result').css('display', lastResult.length === 1 ? 'block' : 'none');
 		$('.multi-result').css('display', lastResult.length > 1 ? 'block' : 'none');
 
-		const errToStr = (err)=>err.stack || JSON.stringify(err, undefined, jsonSeparator);
+		const errToStr = (err)=>extractEvalSatck(err.stack) || JSON.stringify(err, undefined, jsonSeparator);
 		const outToStr = (out)=>typeof out === 'string'? out : JSON.stringify(out, undefined, jsonSeparator);
 
 		if(lastResult.length === 1){
@@ -305,7 +334,7 @@ $(() => {
 			lastResult.map(resRow => {
 				const isError = !!resRow.error;
 				const showedText = isError? errToStr(resRow.error): outToStr(resRow.output);
-				const row = $(`<tr><td>${resRow.input}</td><td class="multi-res-val${isError?' value-error': ''}"></td></tr>`);
+				const row = $(`<tr><td>${resRow.input}</td><td class="pre multi-res-val${isError?' value-error': ''}"></td></tr>`);
 				row.find('.multi-res-val').text(showedText)
 				table.append(row);
 			});
@@ -351,14 +380,40 @@ $(() => {
 			jsonSeparator = $('#result-developed').is(":checked") ? '\t' : undefined;
 			renderResult();
 		});
+
+		$('.col-separator').on('mousedown', function(e){
+			e.stopPropagation();
+			const target = $('#'+$(this).attr('target'));
+			const revertAttr = $(this).attr('revert');
+			const initWith = target.width();
+			const initMouseX = e.clientX;
+			const factor = (typeof revertAttr !== typeof undefined) ? -1 : 1;
+			const moveHandler = (e)=>{
+				target.width(initWith + (e.clientX - initMouseX) * factor);
+				e.stopPropagation();
+			};
+			const mouseupHandler = (e) => {
+				$(document).off('mousemove', moveHandler);
+				$(document).off('mouseup', mouseupHandler);
+				e.stopPropagation();
+			};
+			$(document).on('mousemove', moveHandler);
+			$(document).on("mouseup", mouseupHandler)
+
+		})
+
+		let lastTimeOut: any;
 		editorCodeMirror.on('change', ()=>{
-			if(editorCodeMirror.getValue() !== currentDecoder[currentDecoder.type]){
-				currentDecoder[currentDecoder.type] = editorCodeMirror.getValue();
-				saveDecoder(currentDecoder);
-				if(currentDecoder.type==='js'){
-					doTest();
+			if(lastTimeOut != null) clearTimeout(lastTimeOut);
+			lastTimeOut = setTimeout(()=>{
+				if(editorCodeMirror.getValue() !== currentDecoder[currentDecoder.type]){
+					currentDecoder[currentDecoder.type] = editorCodeMirror.getValue();
+					saveDecoder(currentDecoder);
+					if(currentDecoder.type==='js'){
+						doTest();
+					}
 				}
-			}
+			}, 500);
 		})
 
 		selectDecoderFromAnvhor();
