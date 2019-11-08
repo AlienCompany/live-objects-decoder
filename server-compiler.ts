@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const fs = require("fs");
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
+const beautify = require('gulp-beautify');
 
 const servePort = 4002;
 const app = express();
@@ -48,6 +49,7 @@ app.post('/compile/ts', function (req, res) {
 			if (!errorSent) res.send(data);
 		})
 		.js
+		.pipe(beautify.js({ indent_size: 2 }))
 		.on('data', (r, a, b) => {
 			data += r.contents.toString();
 		})

@@ -124,6 +124,13 @@
       opacity: 1;
     }
   }
+
+  #current-decoder-title {
+    font-weight: bold;
+    font-size: 1.2em;
+    border-top: solid 1px #fff;
+    padding-top: 8px;
+  }
 }
 
 #editor {
@@ -162,7 +169,7 @@
   min-width: 300px;
   max-width: 50%;
 
-  textarea{
+  textarea {
     flex: 0 0 auto;
   }
 
@@ -209,7 +216,55 @@
   padding: 10px;
 }
 
-.current-ts #download-ts::before {content: "Download source (ts)";}
-.current-ts #download-js::before {content: "Download decoder (js)";}
-.current-js #download-ts{display: none;}
-.current-js #download-js::before {content: "Download source/decoder (js)";}
+.current-ts #download-ts::before {
+  content: "Download source (ts)";
+}
+
+.current-ts #download-js::before {
+  content: "Download decoder (js)";
+}
+
+.current-ts.compiling #download-js {
+  opacity: 0.5;
+  cursor: not-allowed;
+  &::before {
+    content: "Compilling ...";
+  }
+}
+.current-ts.failed #download-js {
+  opacity: 0.5;
+  cursor: not-allowed;
+  &::before {
+    content: "Compilation Fail!";
+  }
+}
+
+.current-js #download-ts {
+  display: none;
+}
+
+.current-js #download-js::before {
+  content: "Download source/decoder (js)";
+}
+
+
+#compiled-content {
+  display: none;
+
+  .CodeMirror {
+    background: #eeeeee;
+  }
+
+}
+
+.current-ts.show-compile #compiled-content {
+  display: flex;
+}
+
+.current-ts.show-compile #editor-content {
+  display: none;
+}
+
+.current-js #editor-tabs {
+  display: none;
+}

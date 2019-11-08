@@ -24,17 +24,29 @@
                 </select>
             </form>
             <div class="flex-grow-1"></div>
-            <div class="m-2 flex-row">
+            <div id="current-decoder-title" class="text-center text-bold"></div>
+            <div class="m-2 flex-col">
                 <button id="download-ts" class="btn flex-grow-1 text-center"></button>
                 <button id="download-js" class="btn flex-grow-1 text-center"></button>
             </div>
         </div>
         <div class="col-separator" target="decoders"></div>
         <div id="editor" class="flex-col flex-grow-1">
-            <div id="editor-content" class="flex-col flex-grow-1"></div>
-            <div id="compile-status">
-                <div id="compiling"><i class="material-icons">cached</i> Compilation en cour ...</div>
-                <div id="compile-fail"><i class="material-icons">highlight_off</i> Compilation error</div>
+            <ul id="editor-tabs" class="nav nav-tabs pl-5 mt-2">
+                <li class="nav-item">
+                    <a id="editor-tab-ts" class="nav-link active" href="javascript:void(0)">Code source (TypeScript)</a>
+                </li>
+                <li class="nav-item">
+                    <a id="editor-tab-js" class="nav-link" href="javascript:void(0)">Code compiler (JavaScript)</a>
+                </li>
+            </ul>
+            <div class="flex-col flex-grow-1 position-relative">
+                <div id="editor-content" class="flex-col flex-grow-1"></div>
+                <div id="compiled-content" class="flex-col flex-grow-1"></div>
+                <div id="compile-status">
+                    <div id="compiling"><i class="material-icons">cached</i> Compilation en cour ...</div>
+                    <div id="compile-fail"><i class="material-icons">highlight_off</i> Compilation error</div>
+                </div>
             </div>
         </div>
         <div class="col-separator" target="test" revert></div>

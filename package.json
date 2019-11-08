@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "file-loader": "^4.2.0",
     "gulp": "^4.0.2",
+    "gulp-beautify": "^3.0.0",
     "gulp-connect": "^5.7.0",
     "gulp-open": "^3.0.1",
     "gulp-sass": "^4.0.2",

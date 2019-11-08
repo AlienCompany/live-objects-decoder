@@ -1,10 +1,11 @@
 declare const Swal: any;
 
 type CompileStatus = 'success' | 'compiling' | 'failed' | 'unknown';
+let lastCompileStatus: CompileStatus;
 const setCompileStatus = function (newStatus: CompileStatus) {
-	const jqCompileStatus = $('#compile-status');
-	if (this.lastCompileStatus) jqCompileStatus.removeClass(this.lastCompileStatus);
-	jqCompileStatus.addClass(this.lastCompileStatus = newStatus);
+	const jqCompileStatus = $('body, #compile-status');
+	if (lastCompileStatus) jqCompileStatus.removeClass(lastCompileStatus);
+	jqCompileStatus.addClass(lastCompileStatus = newStatus);
 
 };
 
@@ -46,6 +47,7 @@ $(() => {
 	let decoders: Decoder[];
 	let currentDecoder: Decoder;
 	let editorCodeMirror: CodeMirror.Editor;
+	let compiledCodeMirror: CodeMirror.Editor;
 	let lastResult: { input: string, output?: string, error?: any }[] = [];
 	let lastResultTable: string[][] = [];
 	let selectedTestName: string;
@@ -76,6 +78,9 @@ $(() => {
 					contentType: 'text/plain',
 				});
 				updateLintingCallback(codeMirror, []);
+				if (decoder === currentDecoder) {
+					compiledCodeMirror.setValue(decoder.js);
+				}
 				if (compileId === compileIdInc) {
 					if (decoder === currentDecoder) {
 						await doTest();
@@ -248,9 +253,10 @@ $(() => {
 		}
 		$(decoder.navHtmlElement).addClass('active');
 		currentDecoder = decoder;
-		$('#decoders')
+		$('body')
 			.removeClass(['current-js', 'current-ts'])
 			.addClass('current-' + decoder.type);
+		$('#current-decoder-title').text(decoder.fileName)
 
 		decoder[decoder.type] = await getSource(decoder);
 
@@ -260,6 +266,8 @@ $(() => {
 
 		if (decoder.type === 'js') {
 			doTest();
+		}else{
+			compiledCodeMirror.setValue(decoder.js || '');
 		}
 	}
 
@@ -556,6 +564,13 @@ $(() => {
 			lint: true
 		});
 
+		compiledCodeMirror = CodeMirror($('#compiled-content')[0], {
+			lineNumbers: true,
+			mode: "javascript",
+			readOnly: "nocursor",
+			showCursorWhenSelecting: false
+		});
+
 		const decodersFileName: string[] = await $.get('src/decoders');
 		decoders = decodersFileName
 			.map((file) => /^(.*)\.(js|ts)$/.exec(file))
@@ -615,6 +630,28 @@ $(() => {
 		$('#download-csv').on('click', ()=>{
 			download('decoderResult.csv', toCsv(lastResultTable));
 		});
+		$('#editor-tab-ts').on('click', ()=> {
+			debugger;
+			$('#editor-tab-ts').addClass('active');
+			$('#editor-tab-js').removeClass('active');
+			$('body').removeClass('show-compile');
+		});
+		$('#editor-tab-js').on('click', ()=> {
+			debugger;
+			$('#editor-tab-js').addClass('active');
+			$('#editor-tab-ts').removeClass('active');
+			$('body').addClass('show-compile');
+			compiledCodeMirror.refresh();
+		});
+		$('#download-js').on('click', ()=>{
+			if(currentDecoder.type === 'ts' && lastCompileStatus !== 'success') return;
+			download(currentDecoder.fileName + '.js', currentDecoder.js);
+
+		})
+		$('#download-ts').on('click', ()=>{
+			download(currentDecoder.fileName + '.ts', currentDecoder.ts);
+
+		})
 
 		selectDecoderFromAnchor();
 		window.addEventListener('hashchange', () => selectDecoderFromAnchor());
