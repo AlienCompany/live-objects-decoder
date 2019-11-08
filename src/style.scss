@@ -89,6 +89,7 @@
 }
 
 #decoders {
+  max-width: 50%;
   flex: 0 0 auto;
 
   form {
@@ -159,6 +160,7 @@
 #test {
   flex: 0 0 auto;
   min-width: 300px;
+  max-width: 50%;
 
   textarea{
     flex: 0 0 auto;
