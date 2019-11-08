@@ -1,4 +1,4 @@
-interface OutExpert0{
+interface OutExpert0 {
 	type: number;
 	y: number;
 	z: number;
@@ -25,11 +25,11 @@ interface OutExpert0{
  * @param hexaStr haxa value as string (should not prefixed by '0x')
  */
 function hexaToBinary(hexaStr: string): string {
-    return hexaStr.split('').map((hexaChar) => {// replace each charater by him binary value:
-        let b = parseInt(hexaChar, 16).toString(2); // parseInt(convert hexa char to int value)=>toString(covert int to binary value in string)
-        while (b.length < 4) b = '0' + b; // adding '0' before value for complete the 4 bit (exemple: convert "10" to "0010")
-        return b;
-    }).join('') // join character converted in binary by nothing for got the big binary string.(covert ["0000","0101", "1011",...] to "000001011011...")
+	return hexaStr.split('').map((hexaChar) => {// replace each charater by him binary value:
+		let b = parseInt(hexaChar, 16).toString(2); // parseInt(convert hexa char to int value)=>toString(covert int to binary value in string)
+		while (b.length < 4) b = '0' + b; // adding '0' before value for complete the 4 bit (exemple: convert "10" to "0010")
+		return b;
+	}).join('') // join character converted in binary by nothing for got the big binary string.(covert ["0000","0101", "1011",...] to "000001011011...")
 }
 
 /**
@@ -37,6 +37,7 @@ function hexaToBinary(hexaStr: string): string {
  * @param binary string consisting of '0' and '1'
  * @param sequances string size of sucessive value
  * @param startedIndex index of first sequance (default value is 0)
+ * @return value of each sequances (return length = sequances length)
  *
  * Exemple: binaryParse("010101100111010010010101001", [3,2,4,6], 5)
  * startedIndex (first 5 char is ignored) => "01010"
@@ -46,23 +47,23 @@ function hexaToBinary(hexaStr: string): string {
  * sequance 3 (length = 6) => "001001" => 9
  * return [6,1,13,9]
  */
-function binaryParse(binary: string, sequances: number[], startedIndex: number = 0): number[]{
-  let currantIndex = startedIndex;
-  return sequances.map((sequanceLength)=> {
-    const value = parseInt(binary.substr(currantIndex, sequanceLength),2);
-    currantIndex += sequanceLength;
-    return value;
-  });
+function binaryParse(binary: string, sequances: number[], startedIndex: number = 0): number[] {
+	let currantIndex = startedIndex;
+	return sequances.map((sequanceLength) => {
+		const value = parseInt(binary.substr(currantIndex, sequanceLength), 2);
+		currantIndex += sequanceLength;
+		return value;
+	});
 }
 
 /**
  * @param values: array of values (null or undefined value is ignored)
  * @return return average of values or null if array haven't number
  */
-function average( values: (number | null)[]): number | null {
-  const valuesNotNull = values.filter((value) => value != null);
-  if(valuesNotNull.length === 0) return null;
-  return valuesNotNull.reduce((a,b)=>a+b) / valuesNotNull.length;
+function average(values: (number | null)[]): number | null {
+	const valuesNotNull = values.filter((value) => value != null);
+	if (valuesNotNull.length === 0) return null;
+	return valuesNotNull.reduce((a, b) => a + b) / valuesNotNull.length;
 }
 
 /**
@@ -79,8 +80,8 @@ function value127ToNull(value: number): number | null {
  * @param value in tram
  * @return temperature
  */
-function valueToTemperature(value: number): number{
-	if(value === null) return null;
+function valueToTemperature(value: number): number {
+	if (value === null) return null;
 
 	const temperatureScale = 0.5;
 	const temperatureOffset = 36 - 50;
@@ -93,8 +94,8 @@ function valueToTemperature(value: number): number{
  * @param value in tram
  * @return temperature
  */
-function valueToCo2(value: number): number{
-	if(value === null) return null;
+function valueToCo2(value: number): number {
+	if (value === null) return null;
 
 	const co2Scale = 32;
 	return value * co2Scale;
@@ -104,8 +105,8 @@ function valueToCo2(value: number): number{
  * parse binary tram (from Expert0 doc)
  * @param binary
  */
-function getExpert0(binary: string): OutExpert0{
-  	const values = binaryParse(binary, [4,3,1,4,7,7,7,7,7,7,7,7,7,7,7,7]);
+function getExpert0(binary: string): OutExpert0 {
+	const values = binaryParse(binary, [4, 3, 1, 4, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7]);
 	const res: Partial<OutExpert0> = {
 		type: values[0],
 		y: values[1],
@@ -123,11 +124,11 @@ function getExpert0(binary: string): OutExpert0{
 		co2T1: valueToCo2(value127ToNull(values[13])),
 		co2T2: valueToCo2(value127ToNull(values[14])),
 		co2T3: valueToCo2(value127ToNull(values[15]))
-    };
+	};
 
-	res.extMoy = average([res.extT0,res.extT1,res.extT2,res.extT3]);
-  	res.humMoy = average([res.humT0,res.humT1,res.humT2,res.humT3]);
-  	res.co2Moy = average([res.co2T0,res.co2T1,res.co2T2,res.co2T3]);
+	res.extMoy = average([res.extT0, res.extT1, res.extT2, res.extT3]);
+	res.humMoy = average([res.humT0, res.humT1, res.humT2, res.humT3]);
+	res.co2Moy = average([res.co2T0, res.co2T1, res.co2T2, res.co2T3]);
 
 	return res as OutExpert0;
 }
@@ -139,16 +140,22 @@ function getExpert0(binary: string): OutExpert0{
 function decode(tramHexa: string): string {
 	const tramBinary = hexaToBinary(tramHexa); // convert hexaTram to binary tram
 
-	try{
+	try {
 
-		const type = parseInt(tramBinary.substr(0, 4),2);
-		if(type === 0){
+		const type = parseInt(tramBinary.substr(0, 4), 2);
+		if (type === 0) {
 			return JSON.stringify(getExpert0(tramBinary));
+			/*
+		} else if(type === 1){
+			todo parse Expert1
+		} else if(type === 2){
+			todo parse Expert2
+			*/
 		} else {
 			throw new Error('Type ' + type + ' is unknown');
 		}
-	}catch (error) {
-		return JSON.stringify({error: {message: error.message, stack: error.stack}});
+	} catch (error) {
+		return JSON.stringify({error: {message: error.message, stack: error.stack}, input: tramHexa});
 	}
 }
 
