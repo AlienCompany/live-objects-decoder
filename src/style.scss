@@ -1,6 +1,7 @@
-.material-icons{
+.material-icons {
   font-size: 1em;
 }
+
 .pre {
   white-space: pre;
 }
@@ -12,7 +13,7 @@
   cursor: col-resize;
 }
 
-.CodeMirror{
+.CodeMirror {
   flex-grow: 1;
 }
 
@@ -26,11 +27,13 @@
   flex-direction: column;
 }
 
-.content{
+.content {
   height: 100vh;
-  > *{
+
+  > * {
     overflow-y: auto;
     min-height: 100vh;
+    position: relative;
   }
 }
 
@@ -38,7 +41,7 @@
   background: #FF5722;
   color: #fff;
 
-  &-title{
+  &-title {
     text-align: center;
     font-weight: bold;
     font-size: 1.5em;
@@ -84,42 +87,127 @@
     opacity: 1;
   }
 }
-#decoders form {
-  padding: .375rem .75rem;
 
-  #add-decoder-name, #add-decoder-type {
-    border: none;
-    background: none;
-    color: #fff;
-    outline: none;
+#decoders {
+  flex: 0 0 auto;
+
+  form {
+    padding: .375rem .75rem;
+
+    #add-decoder-name, #add-decoder-type {
+      border: none;
+      background: none;
+      color: #fff;
+      outline: none;
+    }
+
+    #add-decoder-name::placeholder {
+      color: #fff;
+    }
+
+    #add-decoder-type {
+      border: solid 1px #FF5722;
+      opacity: 0;
+      transition-duration: 0.2s;
+
+      option {
+        color: #000;
+      }
+    }
+
+    &.focused {
+      background: #BF360C;
+    }
+
+    #add-decoder-type {
+      opacity: 1;
+    }
+  }
+}
+
+#editor {
+  #compile-status {
+    position: absolute;
+    right: 25px;
+    top: 0;
+    z-index: 100;
+
+    > * {
+      display: none;
+      border: solid 1px #000;
+      border-radius: 0 0 4px 4px;
+      border-top: none;
+      padding: 2px 8px;
+    }
+
+    &.compiling #compiling {
+      display: block;
+      background: #FFECB3;
+      border-color: #FFD54F;
+      color: #b88a00;
+    }
+
+    &.failed #compile-fail {
+      display: block;
+      border-color: #EF9A9A;
+      background: #FFCDD2;
+      color: #B71C1C;
+    }
+  }
+}
+
+#test {
+  flex: 0 0 auto;
+  min-width: 300px;
+
+  textarea{
+    flex: 0 0 auto;
   }
 
-  #add-decoder-name::placeholder {
-    color: #fff;
-  }
+  table {
+    background: #fff;
+    color: #000;
+    width: 100%;
 
-  #add-decoder-type {
-    border: solid 1px #FF5722;
-    opacity: 0;
-    transition-duration: 0.2s;
+    tr:nth-child(odd) {
+      background: #EEEEEE;
+    }
 
-    option {
-      color: #000;
+    td {
+      padding: 5px;
     }
   }
 
-  &.focused {
-    background: #BF360C;
+  .simple-result {
+    padding: 10px;
   }
-  #add-decoder-type {
-     opacity: 1;
-   }
+
+  #simple-value-result, .result-header {
+    background: #fff;
+    color: #333;
+    padding: 10px;
+    border-radius: 0 3px 3px 3px;
+    overflow: auto;
+  }
+
+  .result-header {
+    border-radius: 3px 3px 0 0;
+    padding: 3px 10px;
+    display: inline-block;
+    margin-bottom: -6px;
+  }
+
+  #simple-value-result.value-error, .row-error {
+    background: #EF9A9A !important;
+    border: solid 1px #C62828 !important;
+  }
 }
 
-#test{
-  width: 300px;
+.multi-result {
+  padding: 10px;
 }
 
-
-
-
+.current-ts #download-ts::before {content: "Download source (ts)";}
+.current-ts #download-js::before {content: "Download decoder (js)";}
+.current-js #download-ts{display: none;}
+.current-js #download-js::before {content: "Download source/decoder (js)";}

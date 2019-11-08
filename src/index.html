@@ -23,34 +23,54 @@
                     <option value="ts" selected>.ts</option>
                 </select>
             </form>
+            <div class="flex-grow-1"></div>
+            <div class="m-2 flex-row">
+                <button id="download-ts" class="btn flex-grow-1 text-center"></button>
+                <button id="download-js" class="btn flex-grow-1 text-center"></button>
+            </div>
         </div>
         <div class="col-separator" target="decoders"></div>
         <div id="editor" class="flex-col flex-grow-1">
             <div id="editor-content" class="flex-col flex-grow-1"></div>
+            <div id="compile-status">
+                <div id="compiling"><i class="material-icons">cached</i> Compilation en cour ...</div>
+                <div id="compile-fail"><i class="material-icons">highlight_off</i> Compilation error</div>
+            </div>
         </div>
         <div class="col-separator" target="test" revert></div>
         <div id="test" class="flex-col panel panel-right">
             <div class="panel-title">Test</div>
-            <div class="dropdown flex-col">
+            <div class="dropdown flex-col" id="jeux-de-test">
                 <button class="btn text-center dropdown-toggle" type="button" id="dropdownTest" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Choisir un jeu de test
                 </button>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownTest">
-                    <button class="dropdown-item" type="button">Jeux de test1dxdsssssssssssssssssssssssssssss</button>
-                    <button class="dropdown-item" type="button">Jeux de test2</button>
-                    <button class="dropdown-item" type="button">Jeux de test3</button>
-                </div>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownTest"></div>
             </div>
-            <textarea id="test-value" placeholder="Valeurs a tester (separateur: ' .,;-')" style="height: 2em;min-height: 2em"></textarea>
-            <div id="test-error" style="display: none" ><div class="alert alert-danger pre mx-3"></div></div>
+            <div class="flex-row">
+                <button class="btn flex-grow-1 text-center disabled" id="test-save"><i class="material-icons">save</i> Enregister</button>
+                <button class="btn flex-grow-1 text-center" id="test-save-as"><i class="material-icons">save</i> Enregister-sous</button>
+                <button class="btn flex-grow-1 text-center disabled" id="test-delete"><i class="material-icons">delete</i> Suprimer</button>
+            </div>
+            <textarea id="test-value" placeholder="Trams a tester (separateur: ' .,;-')" style="height: 2em;min-height: 2em"></textarea>
+            <div id="test-error" style="display: none" ><div class="alert alert-danger pre m-3"></div></div>
             <div class="panel-title">Resultat</div>
-            <div class="ml-3"><input type="checkbox" id="result-developed" checked/><label for="result-developed">Affichage developer</label></div>
+            <div class="ml-3">
+                <select id="result-format">
+                    <option value="string">Affichange sans modification</option>
+                    <option value="minimalist">Affichage minimaliste</option>
+                    <option value="developed" selected>Affichage developer</option>
+                    <option value="table">Affichage tableau minimaliste</option>
+                    <option value="tableDeveloped">Affichage tableau developer</option>
+                </select>
+            </div>
             <div class="simple-result">
+                <span class="result-header">Sortie</span>
                 <div id="simple-value-result" class="result pre"></div>
             </div>
             <div class="multi-result">
                 <div id="multi-value-result" class="result"></div>
             </div>
+            <button type="button" id="download-csv" style="display: none" class="btn">Exporter le tableau</button>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

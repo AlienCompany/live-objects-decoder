@@ -1,5 +1,13 @@
 declare const Swal: any;
 
+type CompileStatus = 'success' | 'compiling' | 'failed' | 'unknown';
+const setCompileStatus = function (newStatus: CompileStatus) {
+	const jqCompileStatus = $('#compile-status');
+	if (this.lastCompileStatus) jqCompileStatus.removeClass(this.lastCompileStatus);
+	jqCompileStatus.addClass(this.lastCompileStatus = newStatus);
+
+};
+
 interface Decoder {
 	type: 'ts' | 'js';
 	fileName: string;
@@ -20,31 +28,39 @@ interface TsCompileError {
 	endPosition: TsCompileErrorPos;
 }
 
-const extractDecoderFromScript = (script: string): string | ((string)=> string) => {
+const extractDecoderFromScript = (script: string): string | ((string) => string) => {
 	try {
 		// @ts-ignore
-		declare const decode: (string)=> string;
+		declare const decode: (string) => string;
 		eval(script);
-		if(typeof decode === typeof undefined) return "la fonction decode n'exist pas dans votre script";
-		if(!decode || {}.toString.call(decode) !== '[object Function]') return "decode doit étre une fonction";
+		if (typeof decode === typeof undefined) return 'la fonction decode n\'exist pas dans votre script';
+		if (!decode || {}.toString.call(decode) !== '[object Function]') return 'decode doit étre une fonction';
 		return decode;
-	}catch (e) {
-		return "Votre script ne compile pas :\n" + (e && e.stack) || JSON.stringify(e);
+	} catch (e) {
+		setCompileStatus('failed');
+		return 'Votre script ne compile pas :\n' + (e && e.stack) || JSON.stringify(e);
 	}
-}
+};
 
 $(() => {
 	let decoders: Decoder[];
 	let currentDecoder: Decoder;
 	let editorCodeMirror: CodeMirror.Editor;
-	let lastResult: {input: string, output?: string, error?:any}[] = [];
-	let jsonSeparator: string = '\t';
+	let lastResult: { input: string, output?: string, error?: any }[] = [];
+	let lastResultTable: string[][] = [];
+	let selectedTestName: string;
 	const noop = () => undefined;
 
+	let compileIdInc = 0;
+
+	type ResultDisplayFormat = 'string' | 'minimalist' | 'developed' | 'table' | 'tableDeveloped';
+	let selectedResultDisplay: ResultDisplayFormat = 'developed';
+
 	const TsLint: CodeMirror.AsyncLinter = async (content: string, updateLintingCallback, options, codeMirror) => {
-		console.log(content, updateLintingCallback, options, codeMirror);
 		const decoder = currentDecoder;
-		if (!decoder.type || decoder.type !== 'ts') return;
+		if (decoder.type !== 'ts') return;
+		let compileId = ++compileIdInc;
+		setCompileStatus('compiling');
 		try {
 			decoder.js = await $.ajax({
 				method: 'POST',
@@ -55,8 +71,11 @@ $(() => {
 				contentType: 'text/plain',
 			});
 			updateLintingCallback(codeMirror, []);
-			if(decoder === currentDecoder){
-				await doTest();
+			if (compileId === compileIdInc) {
+				if (decoder === currentDecoder) {
+					await doTest();
+				}
+				setCompileStatus('success');
 			}
 		} catch (e) {
 			if (e.status == 409) {
@@ -74,7 +93,9 @@ $(() => {
 					}
 				})))
 			}
-			console.log(e)
+			if (compileId === compileIdInc) {
+				setCompileStatus('failed');
+			}
 		}
 	};
 
@@ -91,11 +112,11 @@ $(() => {
 		decoders.splice(decoders.indexOf(decoder), 1);
 	}
 
-	function setTestErrorMsg(msg: string): void{
+	function setTestErrorMsg(msg: string): void {
 		$('#test-error')
-			.css('display', msg? 'block': 'none')
+			.css('display', msg ? 'block' : 'none')
 			.find('.alert')
-			.text(msg||'');
+			.text(extractEvalSatck(msg) || '');
 
 	}
 
@@ -213,12 +234,19 @@ $(() => {
 		}
 		$(decoder.navHtmlElement).addClass('active');
 		currentDecoder = decoder;
+		$('#decoders')
+			.removeClass(['current-js', 'current-ts'])
+			.addClass('current-' + decoder.type);
 
 		decoder[decoder.type] = await getSource(decoder);
 
 		editorCodeMirror.setValue(decoder[decoder.type]);
 		editorCodeMirror.setOption('mode', decoder.type === 'js' ? 'javascript' : 'text/typescript');
 		editorCodeMirror.setOption('lint', decoder.type === 'js' ? true : {async: true, getAnnotations: TsLint});
+
+		if (decoder.type === 'js') {
+			doTest();
+		}
 	}
 
 	async function newDecoder() {
@@ -254,6 +282,7 @@ $(() => {
 	<a title="Suprimer" class="material-icons float-right delete">delete</a>
 </button>`);
 		domBtn.on('click', () => location.hash = decoder.fileName);
+		domBtn.on('click', () => location.hash = decoder.fileName);
 		domBtn.find('.rename').on('click', (event) => {
 			event.stopPropagation();
 			uiRenameDecoder(decoder)
@@ -268,85 +297,238 @@ $(() => {
 		});
 		decoder.navHtmlElement = domBtn[0];
 		decodersContenaire.append(decoder.navHtmlElement);
-		location.hash = decoder.fileName;
 	}
 
-	async function doTest(){
+	async function doTest() {
 		const values = getTestValues();
+		if (currentDecoder.type === 'js') {
+			setCompileStatus('success');
+		}
 		const decoder = extractDecoderFromScript(currentDecoder.js);
-		if(typeof decoder === 'string'){
+		if (typeof decoder === 'string') {
 			setTestErrorMsg(decoder);
 			return;
 		}
+		if (!values.length) {
+			setTestErrorMsg('Veulliez lister les trams a decoder');
+			return;
+		}
 		setTestErrorMsg(null);
-		lastResult = values.map((input)=>{
+		lastResult = values.map((input) => {
 			try {
-				const out = decoder(input);
-				if(typeof out !== 'string'){
-					return {input, error: new Error('Result is not a string! (out type= ' + typeof out + ')')};
+				const output = decoder(input);
+				if (typeof output !== 'string') {
+					return {input, error: new Error('Result is not a string! (out type= ' + typeof output + ')')};
 				}
-				try{
-					return {input, output: JSON.parse(out)};
-				}catch (e) {
-					return {input, error: new Error('The string result don\'t contain a JSON\n'+e.message+'\n'+'result = '+out)}
+				try {
+					JSON.parse(output); // check if JSON
+					return {input, output};
+				} catch (e) {
+					return {
+						input,
+						error: new Error('The string result don\'t contain a JSON\n' + e.message + '\n' + 'result = ' + output)
+					}
 				}
-			}catch (error) {
+			} catch (error) {
 				return {input, error}
 			}
 		});
 
-		lastResult.map(res=>res.error).filter(_=>_).forEach((err)=>console.error(err));
+		lastResult.map(res => res.error).filter(_ => _).forEach((err) => console.error(err));
 
 		renderResult();
 
 	}
 
-	function extractEvalSatck(stack: string): string{
-		if(typeof stack !== 'string') return stack;
-		return stack.split('\n').map((line)=>{
-			if(!/^[\ \\]+at\ /.test(line))return line;
+	function extractEvalSatck(stack: string): string {
+		if (typeof stack !== 'string') return stack;
+		return stack.split('\n').map((line) => {
+			if (!/^[\ \\]+at\ /.test(line)) return line;
 			const res = /^(.*)\(eval at[^\,]+,(.*)$/.exec(line);
-			if(!res) return null;
-			debugger;
-			return res[1]+'('+res[2];
-		}).filter(_=>_).join('\n');
+			if (!res) return null;
+			return res[1] + '(' + res[2];
+		}).filter(_ => _).join('\n');
 	}
 
 	function renderResult() {
 		$('.simple-result').css('display', lastResult.length === 1 ? 'block' : 'none');
 		$('.multi-result').css('display', lastResult.length > 1 ? 'block' : 'none');
 
-		const errToStr = (err)=>extractEvalSatck(err.stack) || JSON.stringify(err, undefined, jsonSeparator);
-		const outToStr = (out)=>typeof out === 'string'? out : JSON.stringify(out, undefined, jsonSeparator);
+		const jsonSeparator = selectedResultDisplay === 'developed' || selectedResultDisplay === 'tableDeveloped' ? '    ' : undefined;
+		const isTable = selectedResultDisplay === 'table' || selectedResultDisplay === 'tableDeveloped';
 
-		if(lastResult.length === 1){
-			if(lastResult[0].error){
+		const errToStr = (err) => extractEvalSatck(err.stack) || JSON.stringify(err, undefined, jsonSeparator);
+		const outToStr = (out) => JSON.stringify(out, undefined, jsonSeparator);
+		lastResultTable = [];
+
+		if (lastResult.length === 1) {
+			const outPutParsed = !lastResult[0].error && JSON.parse(lastResult[0].output);
+			if (lastResult[0].error) {
 				$('#simple-value-result')
 					.addClass('value-error')
 					.text(errToStr(lastResult[0].error))
-			}else {
+			} else if (isTable) {
+				const tableKey = Object.keys(outPutParsed);
+				const tableValue = tableKey.map((k) => outToStr(outPutParsed[k]));
+				lastResultTable.push(tableKey);
+				lastResultTable.push(tableValue);
+				const header = '<tr><th>' + tableKey.join('</th><th>') + '</th></tr>';
+				const body = $('<tr></tr>');
+				tableValue.forEach((value) => body.append($('<td></td>').text(value)));
+				const table = $('<table></table>');
+				table.append(header).append(body);
 				$('#simple-value-result')
 					.removeClass('value-error')
-					.text(outToStr(lastResult[0].output))
+					.html('')
+					.append(table);
+			} else if (selectedResultDisplay === 'string') {
+				$('#simple-value-result')
+					.removeClass('value-error')
+					.text(lastResult[0].output)
+			} else {
+				$('#simple-value-result')
+					.removeClass('value-error')
+					.text(outToStr(outPutParsed))
 			}
-		}else if(lastResult.length > 1){
-			const table = $(`<table></table>`);
-			lastResult.map(resRow => {
-				const isError = !!resRow.error;
-				const showedText = isError? errToStr(resRow.error): outToStr(resRow.output);
-				const row = $(`<tr><td>${resRow.input}</td><td class="pre multi-res-val${isError?' value-error': ''}"></td></tr>`);
-				row.find('.multi-res-val').text(showedText)
-				table.append(row);
-			});
-			$('#multi-value-result').html('').append(table);
+		} else if (lastResult.length > 1) {
+			if (isTable) {
+				const tableKeySet = new Set<string>();
+				lastResult.forEach(res => res.error || Object.keys(JSON.parse(res.output)).forEach((key) => tableKeySet.add(key)));
+				const tableKey = Array.from(tableKeySet.values());
+				lastResultTable.push(['Tram', ...tableKey]);
+				const table = $(`<table><tr><th>Tram</th><th>${tableKey.join('</th><th>')}</th></tr></table>`);
+				lastResult.map(resRow => {
+					const isError = !!resRow.error;
+					const row = $(`<tr><td>${resRow.input}</td></tr>`);
+					if (isError) {
+						row.append('<td class="pre multi-res-val value-error" colspan="' + tableKey.length + '">' + errToStr(resRow.error) + '</td>');
+						row.addClass('row-error');
+						lastResultTable.push([resRow.input, errToStr(resRow.error)]);
+					} else {
+						const output = JSON.parse(resRow.output);
+						tableKey.forEach((key) => {
+							row.append($('<td class="pre multi-res-val"></td>').text(outToStr(output[key])));
+						});
+						lastResultTable.push([resRow.input, ...tableKey.map((k) => outToStr(output[k]))]);
+					}
+					table.append(row);
+				});
+				$('#multi-value-result').html('').append(table);
+
+			} else {
+				const table = $(`<table><tr><th>Tram</th><th>Sortie</th></tr></table>`);
+				lastResultTable.push(['Tram', 'Sortie']);
+				lastResult.map(resRow => {
+					const isError = !!resRow.error;
+					const showedText = isError ? errToStr(resRow.error) : selectedResultDisplay === 'string' ? resRow.output : outToStr(JSON.parse(resRow.output));
+					lastResultTable.push([resRow.input, showedText]);
+					const row = $(`<tr class="${isError ? 'row-error' : ''}"><td>${resRow.input}</td><td class="pre multi-res-val${isError ? ' value-error' : ''}"></td></tr>`);
+					row.find('.multi-res-val').text(showedText);
+					table.append(row);
+				});
+				$('#multi-value-result').html('').append(table);
+			}
 		}
+		$('#download-csv').css('display',lastResultTable.length ? 'inline-block' : 'none');
 	}
 
-	function getTestValues(){
+	function toCsv( table: string[][]) {
+
+		const strToStrCsv = (str) => '"' + str.replace(/"/g, '""') + '"';
+		return table.map(row=>row.map(strToStrCsv).join(',')).join('\n')
+	}
+
+	function getTestValues() {
 		const inputVal = $('#test-value').val() as string;
 		return inputVal.replace(/[^A-Za-z0-9]+/g, ',')
 			.split(',')
-			.filter(v=>v);
+			.filter(v => v);
+
+	}
+
+	function initJeuDeTest(){
+		let testMap = JSON.parse(localStorage.getItem('test-list')) as {[name: string]: string[]} || {};
+		const lastInput = localStorage.getItem('test-lastInput') || "";
+		const lastSelection = localStorage.getItem('test-lastSelected');
+
+		const jqTestInput = $('#test-value');
+		jqTestInput.val(lastInput).on('change', ()=> localStorage.setItem('test-lastInput', jqTestInput.val() as string));
+
+		const listKey = Object.keys(testMap);
+		const changeSelectedName = (name)=>{
+			selectedTestName = name;
+			localStorage.setItem('test-lastSelected', name);
+			$('#dropdownTest').text(name || 'Choisir un jeu de test');
+			if(name){
+				$('#test-save').removeClass('disabled');
+				$('#test-delete').removeClass('disabled');
+			}else{
+				$('#test-save').addClass('disabled');
+				$('#test-delete').addClass('disabled');
+			}
+		};
+		if(lastSelection && testMap[lastSelection]){
+			changeSelectedName(lastSelection);
+		}
+
+		const btns : {[testName: string]: JQuery<HTMLElement>} = {};
+
+		const addTestBt = (testName)=> {
+			btns[testName] = $(' <button class="dropdown-item" type="button">'+testName+'</button>')
+				.on('click', ()=>{
+					changeSelectedName(testName);
+					jqTestInput.val(testMap[testName].join(' '));
+					localStorage.setItem('test-lastInput', jqTestInput.val() as string)
+					doTest();
+				})
+			$('#jeux-de-test .dropdown-menu').append(btns[testName]);
+		};
+		listKey.forEach(addTestBt);
+		if(!listKey.length){
+			$('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
+		}
+
+		$('#test-save').on('click', ()=>{
+			if(selectedTestName){
+				const memTestMap = JSON.parse(localStorage.getItem('test-list'))|| {};
+				memTestMap[selectedTestName] = testMap[selectedTestName] = getTestValues();
+				localStorage.setItem('test-list', JSON.stringify(memTestMap));
+			}
+		});
+		$('#test-save-as').on('click', async ()=>{
+			const {value: name} = await Swal.fire({
+				title: 'Nom du test',
+				input: 'text',
+				inputValue: selectedTestName || '',
+				showCancelButton: true,
+				inputValidator: (value) => {
+					if (!value) {
+						return 'Le nom ne doit pas étre vide';
+					} else if (testMap[value]) {
+						return 'Ce nom a déja étais utiliser';
+					}
+				}
+			});
+			if(name){
+				if(!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').html('');
+				const memTestMap = JSON.parse(localStorage.getItem('test-list'))|| {};
+				memTestMap[name] = testMap[name] = getTestValues();
+				localStorage.setItem('test-list', JSON.stringify(memTestMap));
+				addTestBt(name);
+				changeSelectedName(name);
+			}
+		})
+		$('#test-delete').on('click', ()=>{
+			if(selectedTestName){
+				const memTestMap = JSON.parse(localStorage.getItem('test-list'))|| {};
+				delete memTestMap[selectedTestName];
+				delete testMap[selectedTestName];
+				localStorage.setItem('test-list', JSON.stringify(memTestMap));
+				btns[selectedTestName].remove();
+				changeSelectedName(null);
+				if(!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
+			}
+		})
 
 	}
 
@@ -376,19 +558,19 @@ $(() => {
 		})
 		$('#decoders form select').on('change', () => newDecoder());
 		$('#test-value').on('input', () => doTest());
-		$('#result-developed').on('change', ()=>{
-			jsonSeparator = $('#result-developed').is(":checked") ? '\t' : undefined;
+		$('#result-format').on('change', () => {
+			selectedResultDisplay = $('#result-format').val() as ResultDisplayFormat;
 			renderResult();
 		});
 
-		$('.col-separator').on('mousedown', function(e){
+		$('.col-separator').on('mousedown', function (e) {
 			e.stopPropagation();
-			const target = $('#'+$(this).attr('target'));
+			const target = $('#' + $(this).attr('target'));
 			const revertAttr = $(this).attr('revert');
 			const initWith = target.width();
 			const initMouseX = e.clientX;
 			const factor = (typeof revertAttr !== typeof undefined) ? -1 : 1;
-			const moveHandler = (e)=>{
+			const moveHandler = (e) => {
 				target.width(initWith + (e.clientX - initMouseX) * factor);
 				e.stopPropagation();
 			};
@@ -398,34 +580,51 @@ $(() => {
 				e.stopPropagation();
 			};
 			$(document).on('mousemove', moveHandler);
-			$(document).on("mouseup", mouseupHandler)
+			$(document).on('mouseup', mouseupHandler)
 
 		})
+		initJeuDeTest();
 
 		let lastTimeOut: any;
-		editorCodeMirror.on('change', ()=>{
-			if(lastTimeOut != null) clearTimeout(lastTimeOut);
-			lastTimeOut = setTimeout(()=>{
-				if(editorCodeMirror.getValue() !== currentDecoder[currentDecoder.type]){
+		editorCodeMirror.on('change', () => {
+			if (lastTimeOut != null) clearTimeout(lastTimeOut);
+			lastTimeOut = setTimeout(() => {
+				if (editorCodeMirror.getValue() !== currentDecoder[currentDecoder.type]) {
 					currentDecoder[currentDecoder.type] = editorCodeMirror.getValue();
 					saveDecoder(currentDecoder);
-					if(currentDecoder.type==='js'){
+					if (currentDecoder.type === 'js') {
 						doTest();
 					}
 				}
 			}, 500);
-		})
+		});
+		$('#download-csv').on('click', ()=>{
+			download('decoderResult.csv', toCsv(lastResultTable));
+		});
 
-		selectDecoderFromAnvhor();
-		window.addEventListener('hashchange', () => selectDecoderFromAnvhor());
+		selectDecoderFromAnchor();
+		window.addEventListener('hashchange', () => selectDecoderFromAnchor());
 		renderResult();
+	}
+
+	function download(filename: string, text: string): void {
+		const element = document.createElement('a');
+		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+		element.setAttribute('download', filename);
+
+		element.style.display = 'none';
+		document.body.appendChild(element);
+
+		element.click();
+
+		document.body.removeChild(element);
 	}
 
 	function getAnchor(): string {
 		return window.location.hash.substr(1);
 	}
 
-	function selectDecoderFromAnvhor(): void {
+	function selectDecoderFromAnchor(): void {
 		const anchor = getAnchor();
 		const anchorDecoder = decoders.find((d) => d.fileName === anchor) || decoders[0];
 		if (anchorDecoder !== currentDecoder) {
