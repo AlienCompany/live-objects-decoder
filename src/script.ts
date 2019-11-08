@@ -56,47 +56,61 @@ $(() => {
 	type ResultDisplayFormat = 'string' | 'minimalist' | 'developed' | 'table' | 'tableDeveloped';
 	let selectedResultDisplay: ResultDisplayFormat = 'developed';
 
+	let nextCompile: ()=>Promise<void>;
+	let compiling: boolean = false;
 	const TsLint: CodeMirror.AsyncLinter = async (content: string, updateLintingCallback, options, codeMirror) => {
 		const decoder = currentDecoder;
 		if (decoder.type !== 'ts') return;
 		let compileId = ++compileIdInc;
 		setCompileStatus('compiling');
-		try {
-			decoder.js = await $.ajax({
-				method: 'POST',
-				url: `/compile/ts`,
-				data: content,
-				processData: false,
-				dataType: 'text',
-				contentType: 'text/plain',
-			});
-			updateLintingCallback(codeMirror, []);
-			if (compileId === compileIdInc) {
-				if (decoder === currentDecoder) {
-					await doTest();
-				}
-				setCompileStatus('success');
-			}
-		} catch (e) {
-			if (e.status == 409) {
-				const errors: TsCompileError[] = JSON.parse(e.responseText)
-				updateLintingCallback(codeMirror, errors.map(err => ({
-					from: {
-						ch: err.startPosition.character,
-						line: err.startPosition.line
-					},
-					message: err.message,
-					severity: 'error',
-					to: {
-						ch: err.endPosition.character,
-						line: err.endPosition.line
+		nextCompile = async () => {
+			nextCompile = null;
+			compiling = true;
+			try {
+				decoder.js = await $.ajax({
+					method: 'POST',
+					url: `/compile/ts`,
+					data: content,
+					processData: false,
+					dataType: 'text',
+					contentType: 'text/plain',
+				});
+				updateLintingCallback(codeMirror, []);
+				if (compileId === compileIdInc) {
+					if (decoder === currentDecoder) {
+						await doTest();
 					}
-				})))
+					setCompileStatus('success');
+					compiling = false;
+				}else{
+					nextCompile();
+				}
+			} catch (e) {
+				if (e.status == 409) {
+					const errors: TsCompileError[] = JSON.parse(e.responseText)
+					updateLintingCallback(codeMirror, errors.map(err => ({
+						from: {
+							ch: err.startPosition.character,
+							line: err.startPosition.line
+						},
+						message: err.message,
+						severity: 'error',
+						to: {
+							ch: err.endPosition.character,
+							line: err.endPosition.line
+						}
+					})))
+				}
+				if (compileId === compileIdInc) {
+					setCompileStatus('failed');
+					compiling = false;
+				}else{
+					nextCompile();
+				}
 			}
-			if (compileId === compileIdInc) {
-				setCompileStatus('failed');
-			}
-		}
+		};
+		if(!compiling)nextCompile().then(noop);
+
 	};
 
 	const defaultJsDecoderContent = ``;
