@@ -1,22 +1,23 @@
 interface OutExpert0{
 	type: number;
 	y: number;
-	r: number;
+	z: number;
 	v: number;
-	extT0: number | null; // null if tram value = 0x7f
-	extT2: number | null; // null if tram value = 0x7f
-	extT4: number | null; // null if tram value = 0x7f
-	extT6: number | null; // null if tram value = 0x7f
-	extT8: number | null; // null if tram value = 0x7f
-	extT10: number | null; // null if tram value = 0x7f
-	humT0: number | null; // null if tram value = 0x7f
-	humT2: number | null; // null if tram value = 0x7f
-	humT4: number | null; // null if tram value = 0x7f
-	humT6: number | null; // null if tram value = 0x7f
-	humT8: number | null; // null if tram value = 0x7f
-	humT10: number | null; // null if tram value = 0x7f
-	extMoy: number | null; // null if each temperature is null
-	humMoy: number | null; // null if each humidity is null
+	extT0: number;
+	extT1: number;
+	extT2: number;
+	extT3: number;
+	humT0: number;
+	humT1: number;
+	humT2: number;
+	humT3: number;
+	co2T0: number;
+	co2T1: number;
+	co2T2: number;
+	co2T3: number;
+	extMoy: number;
+	humMoy: number;
+	co2Moy: number;
 }
 
 /**
@@ -83,7 +84,20 @@ function valueToTemperature(value: number): number{
 
 	const temperatureScale = 0.5;
 	const temperatureOffset = 36 - 50;
+
 	return value * temperatureScale + temperatureOffset
+}
+
+/**
+ * convert tram value to co2 value
+ * @param value in tram
+ * @return temperature
+ */
+function valueToCo2(value: number): number{
+	if(value === null) return null;
+
+	const co2Scale = 32;
+	return value * co2Scale;
 }
 
 /**
@@ -95,24 +109,25 @@ function getExpert0(binary: string): OutExpert0{
 	const res: Partial<OutExpert0> = {
 		type: values[0],
 		y: values[1],
-		r: values[2],
+		z: values[2],
 		v: values[3],
 		extT0: valueToTemperature(value127ToNull(values[4])),
-		extT2: valueToTemperature(value127ToNull(values[5])),
-		extT4: valueToTemperature(value127ToNull(values[6])),
-		extT6: valueToTemperature(value127ToNull(values[7])),
-		extT8: valueToTemperature(value127ToNull(values[8])),
-		extT10: valueToTemperature(value127ToNull(values[9])),
-		humT0: value127ToNull(values[10]),
-		humT2: value127ToNull(values[11]),
-		humT4: value127ToNull(values[12]),
-		humT6: value127ToNull(values[13]),
-		humT8: value127ToNull(values[14]),
-		humT10: value127ToNull(values[15])
+		extT1: valueToTemperature(value127ToNull(values[5])),
+		extT2: valueToTemperature(value127ToNull(values[6])),
+		extT3: valueToTemperature(value127ToNull(values[7])),
+		humT0: value127ToNull(values[8]),
+		humT1: value127ToNull(values[9]),
+		humT2: value127ToNull(values[10]),
+		humT3: value127ToNull(values[11]),
+		co2T0: valueToCo2(value127ToNull(values[12])),
+		co2T1: valueToCo2(value127ToNull(values[13])),
+		co2T2: valueToCo2(value127ToNull(values[14])),
+		co2T3: valueToCo2(value127ToNull(values[15]))
     };
 
-	res.extMoy = average([res.extT0,res.extT2,res.extT4,res.extT6,res.extT8,res.extT10]);
-  	res.humMoy = average([res.humT0,res.humT2,res.humT4,res.humT6,res.humT8,res.humT10]);
+	res.extMoy = average([res.extT0,res.extT1,res.extT2,res.extT3]);
+  	res.humMoy = average([res.humT0,res.humT1,res.humT2,res.humT3]);
+  	res.co2Moy = average([res.co2T0,res.co2T1,res.co2T2,res.co2T3]);
 
 	return res as OutExpert0;
 }
