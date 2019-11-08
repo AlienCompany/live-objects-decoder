@@ -64,18 +64,6 @@
       left: 5px;
       margin-right: 10px;
     }
-
-    .material-icons {
-      opacity: 0;
-      transition-duration: 0.2s;
-      border-radius: 50%;
-      width: 26px;
-      text-align: center;
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.2);
-      }
-    }
   }
 
 
@@ -83,14 +71,26 @@
     background: #BF360C;
   }
 
-  .btn:hover .material-icons {
-    opacity: 1;
-  }
 }
 
 #decoders {
   max-width: 50%;
   flex: 0 0 auto;
+
+  .material-icons {
+    opacity: 0;
+    transition-duration: 0.2s;
+    border-radius: 50%;
+    width: 26px;
+    text-align: center;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+  .btn:hover .material-icons {
+    opacity: 1;
+  }
 
   form {
     padding: .375rem .75rem;
@@ -171,6 +171,19 @@
 
   textarea {
     flex: 0 0 auto;
+    height: 2em;
+    min-height: 2em;
+    flex-grow: 1;
+  }
+
+  #result-format{
+    width: 100%;
+    background: #F4511E;
+    border: navajowhite;
+    padding: 8px;
+    color: #fff;
+    outline: none;
+    box-shadow: none;
   }
 
   table {
