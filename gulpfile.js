@@ -19,7 +19,7 @@ gulp.task('copy-html', function () {
         .pipe(gulp.dest('./dist/'));
 });
 gulp.task('copy-js', function () {
-    return gulp.src('./src/**/*.js')
+    return gulp.src(['./node_modules/file-saver/dist/*.js'])
         .pipe(gulp.dest('./dist/'));
 });
 gulp.task('codemirror-core', function () {
@@ -49,7 +49,7 @@ gulp.task('build-sass', function () {
         .pipe(sass().on('error', sass.logError))
         .pipe(gulp.dest('./dist'));
 });
-gulp.task('build', gulp.parallel('build-ts', 'copy-html', 'build-sass', 'codemirror'));
+gulp.task('build', gulp.parallel('build-ts', 'copy-html', 'copy-js', 'build-sass', 'codemirror'));
 gulp.task('build-watch', gulp.series('build', function () {
     return watch('src/*', function () {
         console.log('watch detection');

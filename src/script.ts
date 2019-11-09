@@ -58,7 +58,7 @@ $(() => {
 	type ResultDisplayFormat = 'string' | 'minimalist' | 'developed' | 'table' | 'tableDeveloped';
 	let selectedResultDisplay: ResultDisplayFormat = 'developed';
 
-	let nextCompile: ()=>Promise<void>;
+	let nextCompile: () => Promise<void>;
 	let compiling: boolean = false;
 	const TsLint: CodeMirror.AsyncLinter = async (content: string, updateLintingCallback, options, codeMirror) => {
 		const decoder = currentDecoder;
@@ -87,7 +87,7 @@ $(() => {
 					}
 					setCompileStatus('success');
 					compiling = false;
-				}else{
+				} else {
 					nextCompile();
 				}
 			} catch (e) {
@@ -109,12 +109,12 @@ $(() => {
 				if (compileId === compileIdInc) {
 					setCompileStatus('failed');
 					compiling = false;
-				}else{
+				} else {
 					nextCompile();
 				}
 			}
 		};
-		if(!compiling)nextCompile().then(noop);
+		if (!compiling) nextCompile().then(noop);
 
 	};
 
@@ -266,7 +266,7 @@ $(() => {
 
 		if (decoder.type === 'js') {
 			doTest();
-		}else{
+		} else {
 			compiledCodeMirror.setValue(decoder.js || '');
 		}
 	}
@@ -451,13 +451,13 @@ $(() => {
 				$('#multi-value-result').html('').append(table);
 			}
 		}
-		$('#download-csv').css('display',lastResultTable.length ? 'inline-block' : 'none');
+		$('#download-csv').css('display', lastResultTable.length ? 'inline-block' : 'none');
 	}
 
-	function toCsv( table: string[][]) {
+	function toCsv(table: string[][]) {
 
 		const strToStrCsv = (str) => '"' + str.replace(/"/g, '""') + '"';
-		return table.map(row=>row.map(strToStrCsv).join(',')).join('\n')
+		return table.map(row => row.map(strToStrCsv).join(',')).join('\n')
 	}
 
 	function getTestValues() {
@@ -468,36 +468,36 @@ $(() => {
 
 	}
 
-	function initJeuDeTest(){
-		let testMap = JSON.parse(localStorage.getItem('test-list')) as {[name: string]: string[]} || {};
-		const lastInput = localStorage.getItem('test-lastInput') || "";
+	function initJeuDeTest() {
+		let testMap = JSON.parse(localStorage.getItem('test-list')) as { [name: string]: string[] } || {};
+		const lastInput = localStorage.getItem('test-lastInput') || '';
 		const lastSelection = localStorage.getItem('test-lastSelected');
 
 		const jqTestInput = $('#test-value');
-		jqTestInput.val(lastInput).on('change', ()=> localStorage.setItem('test-lastInput', jqTestInput.val() as string));
+		jqTestInput.val(lastInput).on('change', () => localStorage.setItem('test-lastInput', jqTestInput.val() as string));
 
 		const listKey = Object.keys(testMap);
-		const changeSelectedName = (name)=>{
+		const changeSelectedName = (name) => {
 			selectedTestName = name;
 			localStorage.setItem('test-lastSelected', name);
 			$('#dropdownTest').text(name || 'Choisir un jeu de test');
-			if(name){
+			if (name) {
 				$('#test-save').removeClass('disabled');
 				$('#test-delete').removeClass('disabled');
-			}else{
+			} else {
 				$('#test-save').addClass('disabled');
 				$('#test-delete').addClass('disabled');
 			}
 		};
-		if(lastSelection && testMap[lastSelection]){
+		if (lastSelection && testMap[lastSelection]) {
 			changeSelectedName(lastSelection);
 		}
 
-		const btns : {[testName: string]: JQuery<HTMLElement>} = {};
+		const btns: { [testName: string]: JQuery<HTMLElement> } = {};
 
-		const addTestBt = (testName)=> {
-			btns[testName] = $(' <button class="dropdown-item" type="button">'+testName+'</button>')
-				.on('click', ()=>{
+		const addTestBt = (testName) => {
+			btns[testName] = $(' <button class="dropdown-item" type="button">' + testName + '</button>')
+				.on('click', () => {
 					changeSelectedName(testName);
 					jqTestInput.val(testMap[testName].join(' '));
 					localStorage.setItem('test-lastInput', jqTestInput.val() as string)
@@ -506,18 +506,18 @@ $(() => {
 			$('#jeux-de-test .dropdown-menu').append(btns[testName]);
 		};
 		listKey.forEach(addTestBt);
-		if(!listKey.length){
+		if (!listKey.length) {
 			$('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
 		}
 
-		$('#test-save').on('click', ()=>{
-			if(selectedTestName){
-				const memTestMap = JSON.parse(localStorage.getItem('test-list'))|| {};
+		$('#test-save').on('click', () => {
+			if (selectedTestName) {
+				const memTestMap = JSON.parse(localStorage.getItem('test-list')) || {};
 				memTestMap[selectedTestName] = testMap[selectedTestName] = getTestValues();
 				localStorage.setItem('test-list', JSON.stringify(memTestMap));
 			}
 		});
-		$('#test-save-as').on('click', async ()=>{
+		$('#test-save-as').on('click', async () => {
 			const {value: name} = await Swal.fire({
 				title: 'Nom du test',
 				input: 'text',
@@ -531,24 +531,24 @@ $(() => {
 					}
 				}
 			});
-			if(name){
-				if(!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').html('');
-				const memTestMap = JSON.parse(localStorage.getItem('test-list'))|| {};
+			if (name) {
+				if (!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').html('');
+				const memTestMap = JSON.parse(localStorage.getItem('test-list')) || {};
 				memTestMap[name] = testMap[name] = getTestValues();
 				localStorage.setItem('test-list', JSON.stringify(memTestMap));
 				addTestBt(name);
 				changeSelectedName(name);
 			}
 		})
-		$('#test-delete').on('click', ()=>{
-			if(selectedTestName){
-				const memTestMap = JSON.parse(localStorage.getItem('test-list'))|| {};
+		$('#test-delete').on('click', () => {
+			if (selectedTestName) {
+				const memTestMap = JSON.parse(localStorage.getItem('test-list')) || {};
 				delete memTestMap[selectedTestName];
 				delete testMap[selectedTestName];
 				localStorage.setItem('test-list', JSON.stringify(memTestMap));
 				btns[selectedTestName].remove();
 				changeSelectedName(null);
-				if(!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
+				if (!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
 			}
 		})
 
@@ -566,8 +566,8 @@ $(() => {
 
 		compiledCodeMirror = CodeMirror($('#compiled-content')[0], {
 			lineNumbers: true,
-			mode: "javascript",
-			readOnly: "nocursor",
+			mode: 'javascript',
+			readOnly: 'nocursor',
 			showCursorWhenSelecting: false
 		});
 
@@ -627,28 +627,28 @@ $(() => {
 				}
 			}, 500);
 		});
-		$('#download-csv').on('click', ()=>{
+		$('#download-csv').on('click', () => {
 			download('decoderResult.csv', toCsv(lastResultTable));
 		});
-		$('#editor-tab-ts').on('click', ()=> {
+		$('#editor-tab-ts').on('click', () => {
 			debugger;
 			$('#editor-tab-ts').addClass('active');
 			$('#editor-tab-js').removeClass('active');
 			$('body').removeClass('show-compile');
 		});
-		$('#editor-tab-js').on('click', ()=> {
+		$('#editor-tab-js').on('click', () => {
 			debugger;
 			$('#editor-tab-js').addClass('active');
 			$('#editor-tab-ts').removeClass('active');
 			$('body').addClass('show-compile');
 			compiledCodeMirror.refresh();
 		});
-		$('#download-js').on('click', ()=>{
-			if(currentDecoder.type === 'ts' && lastCompileStatus !== 'success') return;
+		$('#download-js').on('click', () => {
+			if (currentDecoder.type === 'ts' && lastCompileStatus !== 'success') return;
 			download(currentDecoder.fileName + '.js', currentDecoder.js);
 
 		})
-		$('#download-ts').on('click', ()=>{
+		$('#download-ts').on('click', () => {
 			download(currentDecoder.fileName + '.ts', currentDecoder.ts);
 
 		})
@@ -658,17 +658,10 @@ $(() => {
 		renderResult();
 	}
 
-	function download(filename: string, text: string): void {
-		const element = document.createElement('a');
-		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-		element.setAttribute('download', filename);
-
-		element.style.display = 'none';
-		document.body.appendChild(element);
-
-		element.click();
-
-		document.body.removeChild(element);
+	function download(filename: string, content: string): void {
+		saveAs(new Blob([content], {
+			type: "text/plain;charset=utf-8"
+		}), filename);
 	}
 
 	function getAnchor(): string {

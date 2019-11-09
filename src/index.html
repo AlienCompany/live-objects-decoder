@@ -34,10 +34,10 @@
         <div id="editor" class="flex-col flex-grow-1">
             <ul id="editor-tabs" class="nav nav-tabs pl-5 mt-2">
                 <li class="nav-item">
-                    <a id="editor-tab-ts" class="nav-link active" href="javascript:void(0)">Code source (TypeScript)</a>
+                    <button id="editor-tab-ts" class="nav-link active">Code source (TypeScript)</button>
                 </li>
                 <li class="nav-item">
-                    <a id="editor-tab-js" class="nav-link" href="javascript:void(0)">Code compiler (JavaScript)</a>
+                    <button id="editor-tab-js" class="nav-link">Code compiler (JavaScript)</button>
                 </li>
             </ul>
             <div class="flex-col flex-grow-1 position-relative">
@@ -63,7 +63,7 @@
                 <button class="btn flex-grow-1 text-center" id="test-save-as"><i class="material-icons">save</i> Enregister-sous</button>
                 <button class="btn flex-grow-1 text-center disabled" id="test-delete"><i class="material-icons">delete</i> Suprimer</button>
             </div>
-            <div class="mx-2 d-flex"><textarea id="test-value" placeholder="Trams a tester (separateur: ' .,;-')"></textarea></div>
+            <div class="mx-2 d-flex"><textarea id="test-value" placeholder="Trams a tester (separateur: ' .,;-')" style="height: 5em;" ></textarea></div>
             <div id="test-error" style="display: none" ><div class="alert alert-danger pre m-3"></div></div>
             <div class="panel-title">Resultat</div>
             <div class="mx-2">
@@ -95,6 +95,7 @@
     <script src="https://unpkg.com/jshint@2.9.6/dist/jshint.js"></script>
     <script src="codemirror/addon/lint.js"></script>
     <script src="codemirror/addon/javascript-lint.js"></script>
+    <script src="./FileSaver.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
