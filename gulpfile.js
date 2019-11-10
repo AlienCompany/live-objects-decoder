@@ -88,5 +88,5 @@ gulp.task('serves-start', gulp.parallel('serve-src-start', 'serve-compiler-start
 gulp.task('serve', gulp.parallel('serves-start', 'open-browser'));
 
 // gulp.task('dev', gulp.parallel('build-watch', 'serve'));
-gulp.task('dev', gulp.parallel('build-watch', 'serves-start'));
+gulp.task('dev', gulp.parallel('build-watch', 'serve'));
 
