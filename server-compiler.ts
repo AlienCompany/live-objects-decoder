@@ -34,6 +34,7 @@ app.post('/compile/ts', function (req, res) {
 					});
 				},
 				finish: (results) => {
+					fs.unlink(tmpFile, ()=>{});
 					if(cErrors.length){
 						res.send(409, cErrors);
 						errorSent = true;

@@ -37,14 +37,14 @@
                     <button id="editor-tab-ts" class="nav-link active">Code source (TypeScript)</button>
                 </li>
                 <li class="nav-item">
-                    <button id="editor-tab-js" class="nav-link">Code compiler (JavaScript)</button>
+                    <button id="editor-tab-js" class="nav-link">Code compilé (JavaScript)</button>
                 </li>
             </ul>
             <div class="flex-col flex-grow-1 position-relative">
                 <div id="editor-content" class="flex-col flex-grow-1"></div>
                 <div id="compiled-content" class="flex-col flex-grow-1"></div>
                 <div id="compile-status">
-                    <div id="compiling"><i class="material-icons">cached</i> Compilation en cour ...</div>
+                    <div id="compiling"><i class="material-icons">cached</i> Compilation en cours ...</div>
                     <div id="compile-fail"><i class="material-icons">highlight_off</i> Compilation error</div>
                 </div>
             </div>
@@ -61,18 +61,18 @@
             <div class="flex-row">
                 <button class="btn flex-grow-1 text-center disabled" id="test-save"><i class="material-icons">save</i> Enregister</button>
                 <button class="btn flex-grow-1 text-center" id="test-save-as"><i class="material-icons">save</i> Enregister-sous</button>
-                <button class="btn flex-grow-1 text-center disabled" id="test-delete"><i class="material-icons">delete</i> Suprimer</button>
+                <button class="btn flex-grow-1 text-center disabled" id="test-delete"><i class="material-icons">delete</i> Supprimer</button>
             </div>
-            <div class="mx-2 d-flex"><textarea id="test-value" placeholder="Trams a tester (separateur: ' .,;-')" style="height: 5em;" ></textarea></div>
+            <div class="mx-2 d-flex"><textarea id="test-value" placeholder="Trames a tester (separateur: ' .,;-')" style="height: 5em;" ></textarea></div>
             <div id="test-error" style="display: none" ><div class="alert alert-danger pre m-3"></div></div>
             <div class="panel-title">Resultat</div>
             <div class="mx-2">
                 <select id="result-format">
-                    <option value="string">Affichange sans modification</option>
+                    <option value="string">Affichage sans modification</option>
                     <option value="minimalist">Affichage minimaliste</option>
-                    <option value="developed" selected>Affichage developer</option>
+                    <option value="developed" selected>Affichage developpé</option>
                     <option value="table">Affichage tableau minimaliste</option>
-                    <option value="tableDeveloped">Affichage tableau developer</option>
+                    <option value="tableDeveloped">Affichage tableau developpé</option>
                 </select>
             </div>
             <div class="simple-result">
@@ -85,6 +85,7 @@
             <button type="button" id="download-csv" style="display: none" class="btn">Exporter le tableau</button>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.5/bluebird.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

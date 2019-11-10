@@ -34,8 +34,8 @@ const extractDecoderFromScript = (script: string): string | ((string) => string)
 		// @ts-ignore
 		declare const decode: (string) => string;
 		eval(script);
-		if (typeof decode === typeof undefined) return 'la fonction decode n\'exist pas dans votre script';
-		if (!decode || {}.toString.call(decode) !== '[object Function]') return 'decode doit étre une fonction';
+		if (typeof decode === typeof undefined) return 'la fonction decode n\'existe pas dans votre script';
+		if (!decode || {}.toString.call(decode) !== '[object Function]') return 'decode doit être une fonction';
 		return decode;
 	} catch (e) {
 		setCompileStatus('failed');
@@ -177,11 +177,11 @@ $(() => {
 	async function uiDeleteDecoder(decoder: Decoder): Promise<void> {
 
 		const {value: isConfirm} = await Swal.fire({
-			title: 'Etes vous sur de vouloir supprimer le decoder ' + decoder.fileName,
+			title: 'Etes-vous sûr de vouloir supprimer le decoder ' + decoder.fileName,
 			type: 'warning',
 			showCancelButton: true,
 			focusConfirm: true,
-			confirmButtonText: 'Delete',
+			confirmButtonText: 'Supprimer',
 			cancelButtonText: 'Annuler',
 		});
 
@@ -198,9 +198,9 @@ $(() => {
 			showCancelButton: true,
 			inputValidator: (value) => {
 				if (!value) {
-					return 'Le nom ne doit pas étre vide'
+					return 'Le nom ne doit pas être vide'
 				} else if (decoder.fileName !== value && decoders.some((d) => d.fileName === value)) {
-					return 'Ce nom a déja étais utiliser';
+					return 'Ce nom à déjà été utilisé';
 				}
 			}
 		});
@@ -212,15 +212,15 @@ $(() => {
 
 	async function uiCopyDecoder(decoder: Decoder): Promise<void> {
 		const {value: newFileName} = await Swal.fire({
-			title: 'Nom de la copy',
+			title: 'Nom de la copie',
 			input: 'text',
 			inputValue: decoder.fileName + '_copy',
 			showCancelButton: true,
 			inputValidator: (value) => {
 				if (!value) {
-					return 'Le nom ne doit pas étre vide'
+					return 'Le nom ne doit pas être vide'
 				} else if (decoders.some((d) => d.fileName === value)) {
-					return 'Ce nom a déja étais utiliser';
+					return 'Ce nom à déjà été utilisé';
 				}
 			}
 		});
@@ -332,7 +332,7 @@ $(() => {
 			return;
 		}
 		if (!values.length) {
-			setTestErrorMsg('Veulliez lister les trams a decoder');
+			setTestErrorMsg('Veuillez lister les trames à decoder');
 			return;
 		}
 		setTestErrorMsg(null);
@@ -507,7 +507,7 @@ $(() => {
 		};
 		listKey.forEach(addTestBt);
 		if (!listKey.length) {
-			$('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
+			$('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistré');
 		}
 
 		$('#test-save').on('click', () => {
@@ -525,9 +525,9 @@ $(() => {
 				showCancelButton: true,
 				inputValidator: (value) => {
 					if (!value) {
-						return 'Le nom ne doit pas étre vide';
+						return 'Le nom ne doit pas être vide';
 					} else if (testMap[value]) {
-						return 'Ce nom a déja étais utiliser';
+						return 'Ce nom à déjà été utilisé';
 					}
 				}
 			});
@@ -548,7 +548,7 @@ $(() => {
 				localStorage.setItem('test-list', JSON.stringify(memTestMap));
 				btns[selectedTestName].remove();
 				changeSelectedName(null);
-				if (!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistrer');
+				if (!Object.keys(testMap).length) $('#jeux-de-test .dropdown-menu').text('Pas de jeux de test enregistré');
 			}
 		})
 
