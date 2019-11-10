@@ -118,8 +118,161 @@ $(() => {
 
 	};
 
-	const defaultJsDecoderContent = ``;
-	const defaultTsDecoderContent = ``;
+	const defaultTsDecoderContent = `
+/**
+ * covert string of hexa to him binary value
+ * @param hexaStr haxa value as string (should not prefixed by '0x')
+ */
+function hexaToBinary(hexaStr: string): string {
+\treturn hexaStr.split('').map((hexaChar) => {// replace each charater by him binary value:
+\t\tlet b = parseInt(hexaChar, 16).toString(2); // parseInt(convert hexa char to int value)=>toString(covert int to binary value in string)
+\t\twhile (b.length < 4) b = '0' + b; // adding '0' before value for complete the 4 bit (exemple: convert "10" to "0010")
+\t\treturn b;
+\t}).join('') // join character converted in binary by nothing for got the big binary string.(covert ["0000","0101", "1011",...] to "000001011011...")
+}
+
+/**
+ * extract succesive value in binary string
+ * @param binary string consisting of '0' and '1'
+ * @param sequances string size of sucessive value
+ * @param startedIndex index of first sequance (default value is 0)
+ * @return value of each sequances (return length = sequances length)
+ *
+ * Exemple: binaryParse("010101100111010010010101001", [3,2,4,6], 5)
+ * startedIndex (first 5 char is ignored) => "01010"
+ * sequance 0 (length = 3) => "110" => 6
+ * sequance 1 (length = 2) => "01" => 1
+ * sequance 2 (length = 4) => "1101" => 13
+ * sequance 3 (length = 6) => "001001" => 9
+ * return [6,1,13,9]
+ */
+function binaryParse(binary: string, sequances: number[], startedIndex: number = 0): number[] {
+\tlet currantIndex = startedIndex;
+\treturn sequances.map((sequanceLength) => {
+\t\tconst value = parseInt(binary.substr(currantIndex, sequanceLength), 2);
+\t\tcurrantIndex += sequanceLength;
+\t\treturn value;
+\t});
+}
+
+/**
+ * @param values: array of values (null or undefined value is ignored)
+ * @return return average of values or null if array haven't number
+ */
+function average(values: (number | null)[]): number | null {
+\tconst valuesNotNull = values.filter((value) => value != null);
+\tif (valuesNotNull.length === 0) return null;
+\treturn valuesNotNull.reduce((a, b) => a + b) / valuesNotNull.length;
+}
+
+/**
+ * parse tram to JSON string
+ * this function is the main function called by Orange
+ */
+function decode(tramHexa: string): string {
+\tconst tramBinary = hexaToBinary(tramHexa); // convert hexaTram to binary tram
+
+\ttry {
+
+\t\tconst resultat = {
+\t\t\tisExemple: true,
+\t\t\tvalue: 1234,
+\t\t\tdemoObj:{
+\t\t\t\tval1: 1,
+\t\t\t\tval2: 2
+\t\t\t},
+\t\t\tdemoArray: [1,2,3,"quatre", [51,52],{six: 6}]
+\t\t};
+\t\treturn JSON.stringify(resultat);
+\t} catch (error) {
+\t\treturn JSON.stringify({error: {message: error.message, stack: error.stack}, input: tramHexa});
+\t}
+}
+`;
+
+	const defaultJsDecoderContent = `
+/**
+ * covert string of hexa to him binary value
+ * @param hexaStr haxa value as string (should not prefixed by '0x')
+ */
+function hexaToBinary(hexaStr) {
+  return hexaStr.split('').map(function(hexaChar) {
+    var b = parseInt(hexaChar, 16).toString(2); // parseInt(convert hexa char to int value)=>toString(covert int to binary value in string)
+    while (b.length < 4)
+      b = '0' + b; // adding '0' before value for complete the 4 bit (exemple: convert "10" to "0010")
+    return b;
+  }).join(''); // join character converted in binary by nothing for got the big binary string.(covert ["0000","0101", "1011",...] to "000001011011...")
+}
+/**
+ * extract succesive value in binary string
+ * @param binary string consisting of '0' and '1'
+ * @param sequances string size of sucessive value
+ * @param startedIndex index of first sequance (default value is 0)
+ * @return value of each sequances (return length = sequances length)
+ *
+ * Exemple: binaryParse("010101100111010010010101001", [3,2,4,6], 5)
+ * startedIndex (first 5 char is ignored) => "01010"
+ * sequance 0 (length = 3) => "110" => 6
+ * sequance 1 (length = 2) => "01" => 1
+ * sequance 2 (length = 4) => "1101" => 13
+ * sequance 3 (length = 6) => "001001" => 9
+ * return [6,1,13,9]
+ */
+function binaryParse(binary, sequances, startedIndex) {
+  if (startedIndex === void 0) {
+    startedIndex = 0;
+  }
+  var currantIndex = startedIndex;
+  return sequances.map(function(sequanceLength) {
+    var value = parseInt(binary.substr(currantIndex, sequanceLength), 2);
+    currantIndex += sequanceLength;
+    return value;
+  });
+}
+/**
+ * @param values: array of values (null or undefined value is ignored)
+ * @return return average of values or null if array haven't number
+ */
+function average(values) {
+  var valuesNotNull = values.filter(function(value) {
+    return value != null;
+  });
+  if (valuesNotNull.length === 0)
+    return null;
+  return valuesNotNull.reduce(function(a, b) {
+    return a + b;
+  }) / valuesNotNull.length;
+}
+/**
+ * parse tram to JSON string
+ * this function is the main function called by Orange
+ */
+function decode(tramHexa) {
+  var tramBinary = hexaToBinary(tramHexa); // convert hexaTram to binary tram
+  try {
+    var resultat = {
+      isExemple: true,
+      value: 1234,
+      demoObj: {
+        val1: 1,
+        val2: 2
+      },
+      demoArray: [1, 2, 3, "quatre", [51, 52], {
+        six: 6
+      }]
+    };
+    return JSON.stringify(resultat);
+  } catch (error) {
+    return JSON.stringify({
+      error: {
+        message: error.message,
+        stack: error.stack
+      },
+      input: tramHexa
+    });
+  }
+}
+`;
 
 	async function deleteDecoder(decoder: Decoder): Promise<void> {
 
@@ -290,6 +443,7 @@ $(() => {
 		decoders.push(decoder);
 		addDecoderToList(decoder);
 		inputName.val('');
+		location.hash = decoder.fileName;
 	}
 
 	function addDecoderToList(decoder: Decoder) {
