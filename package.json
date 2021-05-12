@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "codemirror": "^5.49.2",
+    "codemirror": "^5.58.2",
     "file-saver": "^2.0.2",
     "sweetalert2": "^8.19.0",
     "typescript": "^3.7.2"
